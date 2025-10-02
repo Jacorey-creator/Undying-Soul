@@ -3,79 +3,83 @@ using Unity.Cinemachine;
 
 public class PossessionManager : MonoBehaviour
 {
+    public static PossessionManager Instance { get; private set; }
+
     [SerializeField] private PlayerMovementController ghostMovement;
-    [SerializeField] private PlayerController ghostController;
+    [SerializeField] private PlayerController ghostController; // the ghost’s controller
     [SerializeField] private GameObject ghost;
     [SerializeField] private CinemachineCamera vcam;
 
     private IPossessable currentPossessed;
-    private PlayerController possessedController;
+    private bool isPossessing = false;
 
+    public bool IsPossessing => isPossessing;
+    private void Awake()
+    {
+        // Singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        // Optional: DontDestroyOnLoad(gameObject);
+    }
     void OnEnable()
     {
-        // Ghost listens by default
         PlayerController.OnPossessAttempt += Possess;
         PlayerController.OnUnpossessAttempt += Unpossess;
     }
 
     void OnDisable()
     {
-        // Always clean up
         PlayerController.OnPossessAttempt -= Possess;
         PlayerController.OnUnpossessAttempt -= Unpossess;
     }
 
     private void Possess(GameObject target)
     {
-        Unpossess();
+        if (isPossessing) return; // already possessing something
 
         currentPossessed = target.GetComponent<IPossessable>();
-        possessedController = target.GetComponent<PlayerController>();
-
-        if (currentPossessed == null || possessedController == null) return;
+        if (currentPossessed == null) return;
 
         // Disable ghost
         ghostMovement.enabled = false;
-        ghostController.SetActiveController(false);
         ghost.SetActive(false);
 
-        // Enable possessed input
-        possessedController.SetActiveController(true);
-
+        // Hand control to the possessed enemy
         currentPossessed.OnPossessed(ghost);
 
-        vcam.Target.TrackingTarget = target.transform;
+        // Update camera
+        vcam.LookAt = target.transform;
 
+        isPossessing = true;
+        ghostController.SetPossessionCooldown(); // cooldown managed by ghostController
         Debug.Log("Possessed " + target.name);
     }
 
     private void Unpossess()
     {
-        if (currentPossessed != null)
-        {
-            currentPossessed.OnUnpossessed();
+        if (!isPossessing) return;
 
-            if (possessedController != null)
-                possessedController.SetActiveController(false);
+        // Release the current enemy
+        currentPossessed?.OnUnpossessed();
+        Transform enemyTransform = (currentPossessed as MonoBehaviour)?.transform;
+        currentPossessed = null;
 
-            // Get enemy transform before clearing
-            Transform enemyTransform = (currentPossessed as MonoBehaviour).transform;
+        // Respawn ghost near enemy
+        if (enemyTransform != null)
+            ghost.transform.position = enemyTransform.position + new Vector3(0, 0, 1.5f);
 
-            currentPossessed = null;
-            possessedController = null;
-
-            // Set ghost position slightly above the enemy
-            Vector3 offset = new Vector3(0, 0, 1.5f); // 1 unit above
-            ghost.transform.position = enemyTransform.position + offset;
-        }
-
-        // Re-enable ghost
         ghost.SetActive(true);
         ghostMovement.enabled = true;
-        ghostController.SetActiveController(true);
 
+        // Update camera
         vcam.LookAt = ghost.transform;
 
+        isPossessing = false;
+        ghostController.SetPossessionCooldown(); // cooldown again
         Debug.Log("Unpossessed back to ghost");
     }
 }

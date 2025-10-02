@@ -16,27 +16,39 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float atk_speed = 0.5f;
 
     private float nextPossessTime = 0f;
-    private bool isPossessing = false;
 
     public static event Action<GameObject> OnPossessAttempt;
     public static event Action OnUnpossessAttempt;
 
     public bool IsActiveController { get; private set; } = false;
+    public void SetActiveController(bool state) => IsActiveController = state;
 
-    public void SetActiveController(bool state)
-    {
-        IsActiveController = state;
-    }
 
     // Getters
     public Rigidbody GetRigidBody() => rb;
     public float GetSpeed() => move_speed;
     public float GetTurnSpeed() => turn_speed;
+    public float GetMaxHealth() => player_health;
+    public float GetSwipeDamage() => swipe_damage;
+    public float GetPossessCooldown() => possess_cooldown;
+    public float GetAttackSpeed() => atk_speed;
+
+    // Setters
+    public void SetSpeed(float value) => move_speed = Mathf.Max(0, value); // clamp to 0+
+    public void SetTurnSpeed(float value) => turn_speed = Mathf.Max(0, value);
+    public void SetSwipeDamage(float value) => swipe_damage = Mathf.Max(0, value);
+    public void SetAttackSpeed(float value) => atk_speed = Mathf.Max(0, value);
+    public void SetPossessCooldown(float value) => possess_cooldown = Mathf.Max(0, value);
+    public void SetMaxHealth(float value)
+    {
+        player_health = Mathf.Max(1, value); // must be at least 1
+    }
 
     void Start()
     {
-        IsActiveController = true; // ghost can always read input first
+        IsActiveController = true; // ghost is the input owner initially
     }
+
     private void Update()
     {
         if (IsActiveController)
@@ -47,43 +59,49 @@ public class PlayerController : MonoBehaviour
     {
         if (Time.time < nextPossessTime) return;
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetButtonDown("Possess"))
         {
-            if (!isPossessing)
+            // If currently possessing -> always unpossess
+            if (PossessionManager.Instance.IsPossessing) // expose a property
             {
-                // Try to possess something
-                float range = 3f;
-                Collider[] hits = Physics.OverlapSphere(transform.position, range);
-                GameObject closest = null;
-                float minDist = Mathf.Infinity;
-
-                foreach (var hit in hits)
-                {
-                    if (hit.TryGetComponent<IPossessable>(out _))
-                    {
-                        float dist = (hit.transform.position - transform.position).sqrMagnitude;
-                        if (dist < minDist)
-                        {
-                            minDist = dist;
-                            closest = hit.gameObject;
-                        }
-                    }
-                }
-
-                if (closest != null)
-                {
-                    OnPossessAttempt?.Invoke(closest);
-                    isPossessing = true;
-                    nextPossessTime = Time.time + possess_cooldown;
-                }
+                OnUnpossessAttempt?.Invoke();
             }
             else
             {
-                // If already possessing, then pressing E = unpossess
-                OnUnpossessAttempt?.Invoke();
-                isPossessing = false;
-                nextPossessTime = Time.time + possess_cooldown;
+                // If not possessing -> try to possess nearest
+                GameObject closest = FindClosestPossessable();
+                if (closest != null)
+                    OnPossessAttempt?.Invoke(closest);
             }
         }
+    }
+
+    private GameObject FindClosestPossessable()
+    {
+        float range = 3f;
+        Collider[] hits = Physics.OverlapSphere(transform.position, range);
+
+        GameObject closest = null;
+        float minDist = Mathf.Infinity;
+
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent<IPossessable>(out _))
+            {
+                float dist = (hit.transform.position - transform.position).sqrMagnitude;
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closest = hit.gameObject;
+                }
+            }
+        }
+
+        return closest;
+    }
+
+    public void SetPossessionCooldown()
+    {
+        nextPossessTime = Time.time + possess_cooldown;
     }
 }

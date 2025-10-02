@@ -533,8 +533,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03e64c66424a97e4890874c989172503, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ai: {fileID: 0}
-  movementController: {fileID: 0}
 --- !u!54 &743086095
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -574,8 +572,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c05f086021212a142a0887528aae20fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agent: {fileID: 0}
-  target: {fileID: 0}
 --- !u!114 &743086097
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -589,7 +585,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player_controller: {fileID: 743086098}
-  _input: {x: 0, y: 0, z: 0}
 --- !u!114 &743086098
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -609,9 +604,6 @@ MonoBehaviour:
   swipe_damage: 1
   possess_cooldown: 0
   atk_speed: 0.5
-  nextPossessTime: 0
-  isPossessing: 0
-  <IsActiveController>k__BackingField: 0
 --- !u!136 &743086099
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -876,7 +868,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player_controller: {fileID: 977295151}
-  _input: {x: 0, y: 0, z: 0}
 --- !u!54 &977295150
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -923,9 +914,6 @@ MonoBehaviour:
   swipe_damage: 1
   possess_cooldown: 0
   atk_speed: 0.5
-  nextPossessTime: 0
-  isPossessing: 0
-  <IsActiveController>k__BackingField: 0
 --- !u!1 &1110162486
 GameObject:
   m_ObjectHideFlags: 0
@@ -959,7 +947,6 @@ MonoBehaviour:
   ghostController: {fileID: 977295151}
   ghost: {fileID: 977295144}
   vcam: {fileID: 1826073683}
-  possessedController: {fileID: 0}
 --- !u!4 &1110162488
 Transform:
   m_ObjectHideFlags: 0
