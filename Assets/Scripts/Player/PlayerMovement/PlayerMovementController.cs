@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+[RequireComponent (typeof (PlayerController))] 
+public class PlayerMovementController : MonoBehaviour
 {
-    [SerializeField] private Rigidbody rb;
-    [SerializeField] private float move_speed = 5;
-    [SerializeField] private float turn_speed = 360;
+    [SerializeField] private PlayerController player_controller;
+
     private Vector3 _input;
 
     private void Update()
@@ -22,7 +22,7 @@ public class PlayerController : MonoBehaviour
         {
             var relative = (transform.position + _input.ToIso()) - transform.position;
             var rotate = Quaternion.LookRotation(relative, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotate, turn_speed * Time.deltaTime);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, rotate, player_controller.GetTurnSpeed() * Time.deltaTime);
         }
 
     }
@@ -37,6 +37,10 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 moveDir = _input.ToIso();
 
-        rb.MovePosition(transform.position + moveDir * move_speed * Time.deltaTime);
+        player_controller.GetRigidBody().MovePosition(transform.position + moveDir * player_controller.GetSpeed() * Time.deltaTime);
+    }
+    public void SetController(PlayerController controller)
+    {
+        player_controller = controller;
     }
 }
