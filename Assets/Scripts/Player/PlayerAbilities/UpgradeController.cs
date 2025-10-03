@@ -51,13 +51,25 @@ public class UpgradeController : MonoBehaviour
         ghostController.SetSwipeDamage(newDamage);
         Debug.Log($"Ghost swipe damage increased to {newDamage}");
     }
-
+    public void IncreaseScreamLevel(int amount)
+    {
+        int newScream = ghostController.GetScreamLevel() + amount;
+        ghostController.SetScreamLevel(newScream);
+        Debug.Log($"Scream level increased to {newScream}");
+    }
     public void DecreasePossessCooldown(float amount) 
     {
         float newCooldown = ghostController.GetPossessCooldown() - amount;
         if (newCooldown < 0) newCooldown = 0;
         ghostController.SetPossessCooldown(newCooldown);
         Debug.Log($"Ghost possess cooldown decreased to {newCooldown}");
+    }
+    public void DecreaseScreamCooldown(float amount)
+    {
+        float newCooldown = ghostController.GetScreamCooldown() - amount;
+        if (newCooldown < 0) newCooldown = 0;
+        ghostController.SetScreamCooldown(newCooldown);
+        Debug.Log($"Ghost Scream cooldown decreased to {newCooldown}");
     }
 }
 

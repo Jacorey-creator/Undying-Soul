@@ -29,9 +29,6 @@ public class PlayerHealthController : MonoBehaviour
         currentHealth = maxHealth;
     }
 
-    /// <summary>
-    /// Apply damage
-    /// </summary>
     public void TakeDamage(float amount)
     {
         if (amount <= 0) return;
@@ -45,9 +42,6 @@ public class PlayerHealthController : MonoBehaviour
             Die();
     }
 
-    /// <summary>
-    /// Heal the player
-    /// </summary>
     public void Heal(float amount)
     {
         if (amount <= 0) return;
@@ -64,9 +58,6 @@ public class PlayerHealthController : MonoBehaviour
         OnDeath?.Invoke();
     }
 
-    /// <summary>
-    /// Reset health (useful for respawn or after unpossess)
-    /// </summary>
     public void ResetHealth()
     {
         currentHealth = maxHealth;

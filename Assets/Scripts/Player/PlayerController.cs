@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float player_health = 10f;
     [SerializeField] private float swipe_damage = 1f;
     [SerializeField] private float possess_cooldown = 15f;
+    [SerializeField] private float scream_cooldown = 10f;
+    [SerializeField] private int scream_level = 0;
     [SerializeField] private float atk_speed = 0.5f;
 
     private float nextPossessTime = 0f;
@@ -32,6 +34,8 @@ public class PlayerController : MonoBehaviour
     public float GetSwipeDamage() => swipe_damage;
     public float GetPossessCooldown() => possess_cooldown;
     public float GetAttackSpeed() => atk_speed;
+    public float GetScreamCooldown() => scream_cooldown;
+    public int GetScreamLevel() => scream_level;
 
     // Setters
     public void SetSpeed(float value) => move_speed = Mathf.Max(0, value); // clamp to 0+
@@ -39,6 +43,8 @@ public class PlayerController : MonoBehaviour
     public void SetSwipeDamage(float value) => swipe_damage = Mathf.Max(0, value);
     public void SetAttackSpeed(float value) => atk_speed = Mathf.Max(0, value);
     public void SetPossessCooldown(float value) => possess_cooldown = Mathf.Max(0, value);
+    public void SetScreamCooldown(float value) => scream_cooldown = Mathf.Max(0, value);
+    public void SetScreamLevel(int value) => scream_level = Math.Max(0, value);
     public void SetMaxHealth(float value)
     {
         player_health = Mathf.Max(1, value); // must be at least 1
