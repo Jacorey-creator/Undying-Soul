@@ -6,14 +6,19 @@ public class PlayerAttackController : MonoBehaviour
 {
     private PlayerController controller;
     private float nextAttackTime = 0f;
+    private float nextScreamTime = 0f;
 
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float knockbackForce = 5f;
+
+    [SerializeField] private float screamRadius = 5f;
+    
     [SerializeField] private LayerMask attackMask;
 
     // Event: Invoked whenever the player attacks
     public event Action OnAttack;
+    public event Action OnScream;
 
     void Awake()
     {
@@ -26,12 +31,18 @@ public class PlayerAttackController : MonoBehaviour
 
         if (Input.GetButtonDown("Fire1") && Time.time >= nextAttackTime)
         {
-            PerformAttack();
+            PerformSwipeAttack();
             nextAttackTime = Time.time + controller.GetAttackSpeed();
+        }
+        // Scream
+        if (Input.GetButtonDown("Fire2") && Time.time >= nextScreamTime)
+        {
+            PerformScream();
+            nextScreamTime = Time.time + controller.GetScreamCooldown();
         }
     }
 
-    private void PerformAttack()
+    private void PerformSwipeAttack()
     {
         // Define attack direction (forward from player)
         Vector3 attackOrigin = transform.position + transform.forward * 1f;
@@ -63,10 +74,43 @@ public class PlayerAttackController : MonoBehaviour
         OnAttack?.Invoke();
     }
 
+    private void PerformScream()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, screamRadius, attackMask);
+
+        foreach (Collider hit in hits)
+        {
+            EnemyAI enemyAI = hit.GetComponent<EnemyAI>();
+            if (enemyAI != null)
+            {
+                int playerScreamLevel = controller.GetScreamLevel();
+
+                if (playerScreamLevel >= enemyAI.fearThreshold)
+                {
+                    // Enemy is scared away
+                    enemyAI.Scare(3f, transform.position);
+                    Debug.Log($"{enemyAI.name} scared by scream!");
+                }
+                else
+                {
+                    // Enemy is stunned instead
+                    enemyAI.Stun(1f);
+                    Debug.Log($"{enemyAI.name} stunned by scream!");
+                }
+            }
+        }
+
+        Debug.Log($"{name} screamed!");
+        OnScream?.Invoke();
+    }
+
     void OnDrawGizmosSelected()
     {
         // Visualize attack range
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position + transform.forward * 1f, attackRange);
+
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.35f); // orange & transparent
+        Gizmos.DrawSphere(transform.position, screamRadius);
     }
 }

@@ -248,7 +248,7 @@ MonoBehaviour:
   rb: {fileID: 141878096}
   move_speed: 2
   turn_speed: 360
-  player_health: 10
+  player_health: 1
   swipe_damage: 1
   possess_cooldown: 0
   scream_cooldown: 15
@@ -829,7 +829,7 @@ MonoBehaviour:
   rb: {fileID: 743086095}
   move_speed: 2
   turn_speed: 360
-  player_health: 10
+  player_health: 1
   swipe_damage: 1
   possess_cooldown: 0
   scream_cooldown: 15
@@ -1145,7 +1145,7 @@ MonoBehaviour:
   move_speed: 5
   turn_speed: 360
   player_health: 10
-  swipe_damage: 1
+  swipe_damage: 5
   possess_cooldown: 0
   scream_cooldown: 15
   scream_level: 0
