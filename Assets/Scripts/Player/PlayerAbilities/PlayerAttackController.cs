@@ -1,5 +1,5 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 
 [RequireComponent(typeof(PlayerController))]
 public class PlayerAttackController : MonoBehaviour
@@ -11,30 +11,44 @@ public class PlayerAttackController : MonoBehaviour
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float knockbackForce = 5f;
-
-    [SerializeField] private float screamRadius = 5f;
-    
     [SerializeField] private LayerMask attackMask;
 
-    // Event: Invoked whenever the player attacks
+    [Header("Scream Settings")]
+    [SerializeField] private float screamRadius = 5f;
+
+    [Header("Weapon Modifiers")]
+    [SerializeField] private float soulSwordRange = 3.5f;
+    [SerializeField] private float soulSwordDamageMultiplier = 2f;
+    [SerializeField] private float soulSwordKnockbackMultiplier = 0.5f;
+
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip attackClip;
+    [SerializeField] private AudioClip screamClip;
+    [SerializeField] private AudioClip soulSwordSound;
+
     public event Action OnAttack;
     public event Action OnScream;
 
-    void Awake()
+    private void Awake()
     {
         controller = GetComponent<PlayerController>();
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
     }
 
-    void Update()
+    private void Update()
     {
         if (!controller.IsActiveController) return;
 
+        // Primary attack
         if (Input.GetButtonDown("Fire1") && Time.time >= nextAttackTime)
         {
-            PerformSwipeAttack();
+            PerformAttack(controller.GetCurrentWeapon());
             nextAttackTime = Time.time + controller.GetAttackSpeed();
         }
-        // Scream
+
+        // Scream ability
         if (Input.GetButtonDown("Fire2") && Time.time >= nextScreamTime)
         {
             PerformScream();
@@ -42,38 +56,60 @@ public class PlayerAttackController : MonoBehaviour
         }
     }
 
+    private void PerformAttack(WeaponType weaponType)
+    {
+        switch (weaponType)
+        {
+            case WeaponType.SoulSword:
+                PerformSoulSwordAttack();
+                break;
+            case WeaponType.None:
+                PerformSwipeAttack();
+                break;
+        }
+    }
+
     private void PerformSwipeAttack()
     {
-        // Define attack direction (forward from player)
         Vector3 attackOrigin = transform.position + transform.forward * 1f;
-
-        // Check for enemies in range
         Collider[] hits = Physics.OverlapSphere(attackOrigin, attackRange, attackMask);
 
         foreach (Collider hit in hits)
         {
-            //Apply damage(uncomment when you have enemy health hooked up)
-            float enemyHealth = hit.GetComponent<EnemyAI>().health;
-            if (enemyHealth != 0)
-            {
-                hit.GetComponent<EnemyAI>().health -= controller.GetSwipeDamage();
-            }
+            EnemyAI enemy = hit.GetComponent<EnemyAI>();
+            if (enemy == null) continue;
 
-            // Apply knockback
-            EnemyAI enemyAI = hit.GetComponent<EnemyAI>();
-            if (enemyAI != null)
-            {
-                Vector3 knockDir = (hit.transform.position - transform.position).normalized;
-                enemyAI.ApplyKnockback(knockDir * knockbackForce);
-            }
+            enemy.health -= controller.GetSwipeDamage();
+
+            Vector3 knockDir = (hit.transform.position - transform.position).normalized;
+            enemy.ApplyKnockback(knockDir * knockbackForce);
         }
 
-        Debug.Log($"{name} performed swipe attack!");
-
-        // Fire the event for polish (VFX, SFX, animation, camera shake, etc.)
+        PlaySound(attackClip);
         OnAttack?.Invoke();
+        Debug.Log($"{name} performed a basic swipe attack!");
     }
+    private void PerformSoulSwordAttack()
+    {
+        Vector3 attackOrigin = transform.position + transform.forward * 1.5f;
+        Collider[] hits = Physics.OverlapSphere(attackOrigin, soulSwordRange, attackMask);
 
+        foreach (Collider hit in hits)
+        {
+            EnemyAI enemy = hit.GetComponent<EnemyAI>();
+            if (enemy == null) continue;
+
+            float dmg = controller.GetSwipeDamage() * soulSwordDamageMultiplier;
+            enemy.health -= dmg;
+
+            Vector3 knockDir = (hit.transform.position - transform.position).normalized;
+            enemy.ApplyKnockback(knockDir * knockbackForce * soulSwordKnockbackMultiplier);
+        }
+
+        PlaySound(soulSwordSound);
+        OnAttack?.Invoke();
+        Debug.Log($"{name} unleashed a Soul Sword attack!");
+    }
     private void PerformScream()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, screamRadius, attackMask);
@@ -81,36 +117,51 @@ public class PlayerAttackController : MonoBehaviour
         foreach (Collider hit in hits)
         {
             EnemyAI enemyAI = hit.GetComponent<EnemyAI>();
-            if (enemyAI != null)
-            {
-                int playerScreamLevel = controller.GetScreamLevel();
+            if (enemyAI == null) continue;
 
-                if (playerScreamLevel >= enemyAI.fearThreshold)
-                {
-                    // Enemy is scared away
-                    enemyAI.Scare(3f, transform.position);
-                    Debug.Log($"{enemyAI.name} scared by scream!");
-                }
-                else
-                {
-                    // Enemy is stunned instead
-                    enemyAI.Stun(1f);
-                    Debug.Log($"{enemyAI.name} stunned by scream!");
-                }
+            int playerScreamLevel = controller.GetScreamLevel();
+
+            if (playerScreamLevel >= enemyAI.fearThreshold)
+            {
+                enemyAI.Scare(3f, transform.position);
+                Debug.Log($"{enemyAI.name} scared by scream!");
+            }
+            else
+            {
+                enemyAI.Stun(1f);
+                Debug.Log($"{enemyAI.name} stunned by scream!");
             }
         }
 
-        Debug.Log($"{name} screamed!");
+        PlaySound(screamClip);
         OnScream?.Invoke();
+        Debug.Log($"{name} screamed!");
+    }
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null)
+            return;
+
+        // Interrupt currently playing sounds
+        if (audioSource.isPlaying)
+            audioSource.Stop();
+
+        audioSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
+        audioSource.PlayOneShot(clip);
     }
 
-    void OnDrawGizmosSelected()
+    private void OnDrawGizmosSelected()
     {
-        // Visualize attack range
+        // Attack
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position + transform.forward * 1f, attackRange);
 
-        Gizmos.color = new Color(1f, 0.5f, 0f, 0.35f); // orange & transparent
+        // Soul sword
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position + transform.forward * 1.5f, soulSwordRange);
+
+        // Scream
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.35f);
         Gizmos.DrawSphere(transform.position, screamRadius);
     }
 }
