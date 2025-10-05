@@ -28,6 +28,19 @@ public class RoomGenerator
                     space.BottomLeftAreaCorner, space.TopRightAreaCorner, roomTopCornerModifier, roomOffset
                 );
 
+            // Enforce minimum room dimensions to avoid overly skinny rooms
+            int minWidth = Mathf.Max(roomWidthMin, 1);
+            int minLength = Mathf.Max(roomLengthMin, 1);
+
+            // Clamp top-right so width/length are at least minimums
+            int clampedTopRightX = Mathf.Max(newTopRightPoint.x, newBottomLeftPoint.x + minWidth);
+            int clampedTopRightY = Mathf.Max(newTopRightPoint.y, newBottomLeftPoint.y + minLength);
+            // Also ensure we don't exceed the containing space
+            clampedTopRightX = Mathf.Min(clampedTopRightX, space.TopRightAreaCorner.x - roomOffset);
+            clampedTopRightY = Mathf.Min(clampedTopRightY, space.TopRightAreaCorner.y - roomOffset);
+
+            newTopRightPoint = new Vector2Int(clampedTopRightX, clampedTopRightY);
+
             space.BottomLeftAreaCorner = newBottomLeftPoint;
             space.TopRightAreaCorner = newTopRightPoint;
             space.BottomRightAreaCorner = new Vector2Int(newTopRightPoint.x, newBottomLeftPoint.y);

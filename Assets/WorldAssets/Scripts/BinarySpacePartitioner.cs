@@ -100,7 +100,8 @@ public class BinarySpacePartitioner
         }
         else
         {
-            orientation = Orientation.Vertical;
+            // If only length allows a split, split horizontally; otherwise default vertical
+            orientation = lengthStatus ? Orientation.Horizontal : Orientation.Vertical;
         }
         return new Line(
             orientation, 
