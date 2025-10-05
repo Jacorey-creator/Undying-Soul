@@ -38,6 +38,7 @@ public class PlayerAttackController : MonoBehaviour
 
     private void Update()
     {
+        if (!GameStateManager.IsGameplay) return;
         if (!controller.IsActiveController) return;
 
         // Primary attack

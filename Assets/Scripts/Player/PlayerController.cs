@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Rigidbody rb;
     [SerializeField] private int essence_stored;
+    [SerializeField] private HealthUIController healthUIController;
 
     [Header("Movement")]
     [SerializeField] private float move_speed = 5f;
@@ -68,10 +69,12 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         IsActiveController = true; // Ghost is input owner initially
+        if (healthUIController) healthUIController.SetTarget(gameObject.GetComponent<PlayerHealthController>());
     }
 
     private void Update()
     {
+        if (!GameStateManager.IsGameplay) return;
         if (IsActiveController)
             HandlePossessionInput();
     }
@@ -92,12 +95,13 @@ public class PlayerController : MonoBehaviour
             {
                 // Try to possess nearest
                 GameObject closest = FindClosestPossessable();
-                if (closest != null) 
+                if (closest != null)
                 {
                     OnPossessAttempt?.Invoke(closest);
                 }
             }
         }
+        if (Input.GetKeyDown(KeyCode.C)) { gameObject.GetComponent<PlayerHealthController>().TakeDamage(0.5f); }
     }
 
     private GameObject FindClosestPossessable()
