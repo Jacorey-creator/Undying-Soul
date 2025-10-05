@@ -69,7 +69,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         IsActiveController = true; // Ghost is input owner initially
-        healthUIController.SetTarget(gameObject.GetComponent<PlayerHealthController>());
+        if (healthUIController) healthUIController.SetTarget(gameObject.GetComponent<PlayerHealthController>());
     }
 
     private void Update()
@@ -95,12 +95,13 @@ public class PlayerController : MonoBehaviour
             {
                 // Try to possess nearest
                 GameObject closest = FindClosestPossessable();
-                if (closest != null) 
+                if (closest != null)
                 {
                     OnPossessAttempt?.Invoke(closest);
                 }
             }
         }
+        if (Input.GetKeyDown(KeyCode.C)) { gameObject.GetComponent<PlayerHealthController>().TakeDamage(0.5f); }
     }
 
     private GameObject FindClosestPossessable()

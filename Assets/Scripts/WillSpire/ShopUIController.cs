@@ -26,7 +26,7 @@ public class ShopUIController : MonoBehaviour
     [SerializeField] private Button possessButton;
     [SerializeField] private TextMeshProUGUI possessPriceText;
 
-    [Header("Visual FeedBack")]
+    [Header("Visual Feedback")]
     [SerializeField] private SkillBar speedBar;
     [SerializeField] private SkillBar maxHealthBar;
     [SerializeField] private SkillBar attackSpeedBar;
@@ -39,14 +39,12 @@ public class ShopUIController : MonoBehaviour
 
     private void Awake()
     {
-        // Ensure panel is active for RectTransform manipulation
         if (shopPanel != null)
         {
             shopPanel.SetActive(true);
             panelRect.anchoredPosition = hiddenPosition;
             shopPanel.SetActive(false);
         }
-        
     }
 
     private void Start()
@@ -56,7 +54,7 @@ public class ShopUIController : MonoBehaviour
         {
             Debug.LogError("ShopController instance not found in scene!");
         }
-        // Assign button callbacks
+
         speedButton.onClick.AddListener(() => BuyUpgrade(0));
         healthButton.onClick.AddListener(() => BuyUpgrade(1));
         attackSpeedButton.onClick.AddListener(() => BuyUpgrade(2));
@@ -69,7 +67,6 @@ public class ShopUIController : MonoBehaviour
 
     private void Update()
     {
-        // Toggle shop via input (keyboard or joystick)
         if (Input.GetButtonDown("Shop"))
         {
             ToggleShop();
@@ -80,7 +77,7 @@ public class ShopUIController : MonoBehaviour
     {
         isOpen = !isOpen;
         StopAllCoroutines();
-        shopPanel.SetActive(true); // make sure panel is active to slide
+        shopPanel.SetActive(true);
         StartCoroutine(SlidePanel(isOpen ? visiblePosition : hiddenPosition));
         RefreshUI();
     }
@@ -99,12 +96,19 @@ public class ShopUIController : MonoBehaviour
 
         panelRect.anchoredPosition = target;
 
-        // Pause/unpause after slide finishes
-        Time.timeScale = isOpen ? 0f : 1f;
-
-        // Hide panel when fully closed
-        if (!isOpen)
+        if (isOpen)
+        {
+            // Shop opened
+            Time.timeScale = 0f;
+            GameStateManager.SetState(GameState.Shop);
+        }
+        else
+        {
+            // Shop closed
+            Time.timeScale = 1f;
+            GameStateManager.SetState(GameState.Gameplay);
             shopPanel.SetActive(false);
+        }
     }
 
     private void BuyUpgrade(int index)
@@ -128,7 +132,7 @@ public class ShopUIController : MonoBehaviour
         UpdateButton(screamButton, screamPriceText, shop.GetUpgradePrice(4), playerEssence);
         UpdateButton(possessButton, possessPriceText, shop.GetUpgradePrice(5), playerEssence);
 
-        // Update skill bars visually
+        // Update skill bars
         speedBar.SetLevel(shop.GetUpgradeLevel(0));
         maxHealthBar.SetLevel(shop.GetUpgradeLevel(1));
         attackSpeedBar.SetLevel(shop.GetUpgradeLevel(2));

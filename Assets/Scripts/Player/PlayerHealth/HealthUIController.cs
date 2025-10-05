@@ -9,13 +9,13 @@ public class HealthUIController : MonoBehaviour
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.green;
+    [SerializeField] private Color lowHealthColor = Color.red;
     [SerializeField] private Color bonusGlowColor = Color.cyan;
 
     private PlayerHealthController targetHealth;
 
     private void OnEnable()
     {
-        // If a target is already assigned (e.g., from PossessionManager), hook into it
         if (targetHealth != null)
             targetHealth.OnHealthChanged += UpdateHealthUI;
     }
@@ -31,7 +31,6 @@ public class HealthUIController : MonoBehaviour
     /// </summary>
     public void SetTarget(PlayerHealthController newTarget)
     {
-        // Unsubscribe from the previous target (if any)
         if (targetHealth != null)
             targetHealth.OnHealthChanged -= UpdateHealthUI;
 
@@ -44,7 +43,6 @@ public class HealthUIController : MonoBehaviour
         }
         else
         {
-            // Clear UI if no player
             UpdateHealthUI(0f, 1f);
         }
     }
@@ -57,16 +55,30 @@ public class HealthUIController : MonoBehaviour
         float fill = Mathf.Clamp01(current / max);
         healthFillImage.fillAmount = fill;
 
-        // Change color based on over-heal state
+        // === Over-heal ===
         if (current > max)
         {
             glowImage.gameObject.SetActive(true);
             glowImage.color = bonusGlowColor;
             healthFillImage.color = bonusGlowColor;
+            return;
+        }
+
+        glowImage.gameObject.SetActive(false);
+
+        // === Normal & Low Health Color Transition ===
+        float healthPercent = current / max;
+
+        if (healthPercent <= 0.2f)
+        {
+            // Gradually blend from green -> red as health approaches 0%
+            float t = Mathf.InverseLerp(0.2f, 0f, healthPercent);
+            Color blended = Color.Lerp(normalColor, lowHealthColor, t);
+            healthFillImage.color = blended;
         }
         else
         {
-            glowImage.gameObject.SetActive(false);
+            // Above 20% health, normal color
             healthFillImage.color = normalColor;
         }
     }

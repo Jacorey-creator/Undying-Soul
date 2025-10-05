@@ -13,15 +13,18 @@ public class PlayerHealthController : MonoBehaviour
 
     [Header("Audio Settings")]
     [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioSource lowhealth_audioSource;
     [SerializeField] private AudioClip damageClip;
     [SerializeField] private AudioClip deathClip;
+    [SerializeField] private AudioClip lowhealthClip;
+
+    private bool isLowHealthActive = false;
 
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
 
     private void Awake()
     {
-        // Get the PlayerController component
         playerController = GetComponent<PlayerController>();
         if (playerController == null)
         {
@@ -29,9 +32,15 @@ public class PlayerHealthController : MonoBehaviour
             return;
         }
 
-        // Use PlayerController’s max health
         maxHealth = playerController.GetMaxHealth();
         currentHealth = maxHealth;
+
+        if (lowhealth_audioSource != null)
+        {
+            lowhealth_audioSource.clip = lowhealthClip;
+            lowhealth_audioSource.loop = true;
+            lowhealth_audioSource.playOnAwake = false;
+        }
     }
 
     public void TakeDamage(float amount)
@@ -43,6 +52,7 @@ public class PlayerHealthController : MonoBehaviour
 
         AudioHelper.PlaySound(damageClip, audioSource);
 
+        HandleLowHealthAudio();
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
         if (currentHealth <= 0)
@@ -56,7 +66,37 @@ public class PlayerHealthController : MonoBehaviour
         currentHealth += amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
+        HandleLowHealthAudio();
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+    private void HandleLowHealthAudio()
+    {
+        if (lowhealth_audioSource == null || lowhealthClip == null) return;
+
+        float healthPercent = currentHealth / maxHealth;
+
+        // If below 20%, start or adjust the low health audio
+        if (healthPercent <= 0.20f && currentHealth > 0)
+        {
+            if (!lowhealth_audioSource.isPlaying)
+            {
+                lowhealth_audioSource.Play();
+                isLowHealthActive = true;
+            }
+
+            // Adjust pitch based on severity
+            if (healthPercent <= 0.10f)
+                lowhealth_audioSource.pitch = 1.5f; // faster heartbeat
+            else
+                lowhealth_audioSource.pitch = 1.0f; // normal speed
+        }
+        else if (isLowHealthActive && healthPercent > 0.15f)
+        {
+            // Fade out or stop when health is above threshold
+            lowhealth_audioSource.Stop();
+            isLowHealthActive = false;
+        }
     }
 
     private void Die()
@@ -65,12 +105,16 @@ public class PlayerHealthController : MonoBehaviour
 
         AudioHelper.PlaySound(deathClip, audioSource);
 
+        if (lowhealth_audioSource != null && lowhealth_audioSource.isPlaying)
+            lowhealth_audioSource.Stop();
+
         OnDeath?.Invoke();
     }
 
     public void ResetHealth()
     {
         currentHealth = maxHealth;
+        HandleLowHealthAudio();
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
     }
 }
