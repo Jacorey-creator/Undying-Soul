@@ -37,6 +37,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         Vector3 moveDir = _input.ToIso();
 
+        player_controller.GetRigidBody().linearVelocity = Vector3.zero; // cancel leftover push velocity
         player_controller.GetRigidBody().MovePosition(transform.position + moveDir * player_controller.GetSpeed() * Time.deltaTime);
     }
     public void SetController(PlayerController controller)

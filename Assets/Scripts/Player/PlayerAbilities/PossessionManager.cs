@@ -1,81 +1,137 @@
 ﻿using UnityEngine;
 using Unity.Cinemachine;
+using System.Collections;
 
 public class PossessionManager : MonoBehaviour
 {
+    public static PossessionManager Instance { get; private set; }
+
     [SerializeField] private PlayerMovementController ghostMovement;
-    [SerializeField] private PlayerController ghostController;
+    [SerializeField] private PlayerController ghostController; // ghost’s controller
+    [SerializeField] private PlayerHealthController ghostHealth; // ghost’s health controller
     [SerializeField] private GameObject ghost;
     [SerializeField] private CinemachineCamera vcam;
 
+    [Header("Possession Settings")]
+    [SerializeField] private float possessionDuration = 10f;
+    [SerializeField] private float drainRate = 1f; // how much health drains per second
+    [SerializeField] private float transferEfficiency = 1f; // 1 = full health transfer
+
+    [Header("Audio Settings")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip possessSound;
+    [SerializeField] private AudioClip unpossessSound;
+
     private IPossessable currentPossessed;
-    private PlayerController possessedController;
+    private EnemyAI currentEnemyAI;
+    private Coroutine possessionTimerCoroutine;
+    private bool isPossessing = false;
+
+    public bool IsPossessing => isPossessing;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
 
     void OnEnable()
     {
-        // Ghost listens by default
         PlayerController.OnPossessAttempt += Possess;
         PlayerController.OnUnpossessAttempt += Unpossess;
     }
 
     void OnDisable()
     {
-        // Always clean up
         PlayerController.OnPossessAttempt -= Possess;
         PlayerController.OnUnpossessAttempt -= Unpossess;
     }
 
     private void Possess(GameObject target)
     {
-        Unpossess();
+        if (isPossessing) return;
 
         currentPossessed = target.GetComponent<IPossessable>();
-        possessedController = target.GetComponent<PlayerController>();
-
-        if (currentPossessed == null || possessedController == null) return;
+        currentEnemyAI = target.GetComponent<EnemyAI>();
+        if (currentPossessed == null || currentEnemyAI == null) return;
 
         // Disable ghost
         ghostMovement.enabled = false;
-        ghostController.SetActiveController(false);
         ghost.SetActive(false);
 
-        // Enable possessed input
-        possessedController.SetActiveController(true);
+        AudioHelper.PlaySound(possessSound, audioSource);
 
+        // Hand control to the possessed enemy
         currentPossessed.OnPossessed(ghost);
+        vcam.LookAt = target.transform;
 
-        vcam.Target.TrackingTarget = target.transform;
+        isPossessing = true;
+        ghostController.SetPossessionCooldown();
 
-        Debug.Log("Possessed " + target.name);
+        // Start possession drain
+        possessionTimerCoroutine = StartCoroutine(PossessionRoutine());
+        Debug.Log($"Possessed {target.name}!");
+    }
+
+    private IEnumerator PossessionRoutine()
+    {
+        float elapsed = 0f;
+
+        while (elapsed < possessionDuration && currentEnemyAI != null)
+        {
+            // Drain enemy health over time
+            float drainAmount = drainRate * Time.deltaTime;
+            currentEnemyAI.health -= drainAmount;
+
+            // Heal player by the same amount (adjusted by efficiency)
+            ghostHealth.Heal(drainAmount * transferEfficiency);
+
+            // If the enemy dies mid-possession, end early
+            if (currentEnemyAI.health <= 0)
+            {
+                Debug.Log("Possessed target died — ending possession.");
+                break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // End possession automatically
+        Unpossess();
     }
 
     private void Unpossess()
     {
-        if (currentPossessed != null)
-        {
-            currentPossessed.OnUnpossessed();
+        if (!isPossessing) return;
 
-            if (possessedController != null)
-                possessedController.SetActiveController(false);
+        // Stop any running possession timers
+        if (possessionTimerCoroutine != null)
+            StopCoroutine(possessionTimerCoroutine);
 
-            // Get enemy transform before clearing
-            Transform enemyTransform = (currentPossessed as MonoBehaviour).transform;
+        currentPossessed?.OnUnpossessed();
+        Transform enemyTransform = (currentPossessed as MonoBehaviour)?.transform;
 
-            currentPossessed = null;
-            possessedController = null;
+        currentPossessed = null;
+        currentEnemyAI = null;
 
-            // Set ghost position slightly above the enemy
-            Vector3 offset = new Vector3(0, 0, 1.5f); // 1 unit above
-            ghost.transform.position = enemyTransform.position + offset;
-        }
+        AudioHelper.PlaySound(unpossessSound, audioSource);
 
-        // Re-enable ghost
+        // Respawn ghost near enemy
+        if (enemyTransform != null)
+            ghost.transform.position = enemyTransform.position + new Vector3(0, 0, 1.5f);
+
         ghost.SetActive(true);
         ghostMovement.enabled = true;
-        ghostController.SetActiveController(true);
-
         vcam.LookAt = ghost.transform;
 
-        Debug.Log("Unpossessed back to ghost");
+        isPossessing = false;
+        ghostController.SetPossessionCooldown();
+
+        Debug.Log("Unpossessed back to ghost!");
     }
 }
