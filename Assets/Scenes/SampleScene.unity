@@ -4332,6 +4332,7 @@ GameObject:
   - component: {fileID: 977295155}
   - component: {fileID: 977295157}
   - component: {fileID: 977295159}
+  - component: {fileID: 977295160}
   m_Layer: 0
   m_Name: SamplePlayer
   m_TagString: Player
@@ -4618,14 +4619,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a692bb0e70ed2e94f87e90467140bb54, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  up: {fileID: 21300000, guid: 48cc0df2d5c0de340943f256a0726fc3, type: 3}
-  upRight: {fileID: 21300000, guid: 1f342207d09547f4caa7bc526c49e130, type: 3}
-  right: {fileID: 21300000, guid: 02b785b426efc4e4faa73f73ed0f5a04, type: 3}
-  downRight: {fileID: 21300000, guid: 0f0d89572aaf6274eb0f08544f1ab9c1, type: 3}
-  down: {fileID: 21300000, guid: 513be92487f80f3419dae916e61b3d8c, type: 3}
-  downLeft: {fileID: 21300000, guid: c2801f5019d2d2540aa8316ef84c8d8d, type: 3}
-  left: {fileID: 21300000, guid: 1ce937ece5807e3488c3d96310fef05f, type: 3}
-  upLeft: {fileID: 21300000, guid: 5b25742228429c242ac95e4617024679, type: 3}
   cameraTransform: {fileID: 330585546}
 --- !u!212 &977295158
 SpriteRenderer:
@@ -4696,6 +4689,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   deathEffect: {fileID: 0}
   deathScreen: {fileID: 0}
+--- !u!95 &977295160
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977295144}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 40d3489ea01c58b43b71c10baa0f7b5f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &982023199
 GameObject:
   m_ObjectHideFlags: 0
