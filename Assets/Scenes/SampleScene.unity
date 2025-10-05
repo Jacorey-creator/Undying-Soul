@@ -385,9 +385,9 @@ MonoBehaviour:
   - {fileID: 557270424}
   - {fileID: 1644341674}
   - {fileID: 1927772324}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &79225144
 GameObject:
   m_ObjectHideFlags: 0
@@ -1158,9 +1158,9 @@ MonoBehaviour:
   - {fileID: 1600241982}
   - {fileID: 2085420013}
   - {fileID: 1514071412}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &179301444
 GameObject:
   m_ObjectHideFlags: 0
@@ -1566,9 +1566,9 @@ MonoBehaviour:
   - {fileID: 1689464702}
   - {fileID: 2117536849}
   - {fileID: 856626422}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &276759386
 GameObject:
   m_ObjectHideFlags: 0
@@ -5935,9 +5935,9 @@ MonoBehaviour:
   - {fileID: 928226755}
   - {fileID: 1883372952}
   - {fileID: 1505485250}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &1420100287
 GameObject:
   m_ObjectHideFlags: 0
@@ -6347,9 +6347,9 @@ MonoBehaviour:
   - {fileID: 1691444956}
   - {fileID: 1115427494}
   - {fileID: 2020966453}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &1579497714
 GameObject:
   m_ObjectHideFlags: 0
@@ -7784,9 +7784,9 @@ MonoBehaviour:
   - {fileID: 1467745415}
   - {fileID: 1170504924}
   - {fileID: 276759388}
-  filledColor: {r: 1, g: 1, b: 1, a: 1}
-  emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  finalColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  baseColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  midColor: {r: 1, g: 0, b: 1, a: 1}
+  maxColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &1883372950
 GameObject:
   m_ObjectHideFlags: 0
