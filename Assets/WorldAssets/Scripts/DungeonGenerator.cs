@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 public class DungeonGenerator
 {
     RoomNode rootNode;
-    List<RoomNode> allSpaceNodes = new List<RoomNode>();
+    List<RoomNode> allNodesCollection = new List<RoomNode>();
 
     private int dungeonWidth, dungeonLength;
 
@@ -16,15 +17,18 @@ public class DungeonGenerator
     }
 
 
-    public List<Node> CalculateRooms(int maxIterations, int roomWidthMin, int roomLengthMin, float roomBottomCornerModifier, float roomTopCornerModifier, int roomOffset)
+    public List<Node> CalculateRooms(int maxIterations, int roomWidthMin, int roomLengthMin, float roomBottomCornerModifier, float roomTopCornerModifier, int roomOffset, int corridorWidth)
     {
         BinarySpacePartitioner bsp = new BinarySpacePartitioner(dungeonWidth, dungeonLength);
-        allSpaceNodes = bsp.PrepareNodesCollection(maxIterations, roomWidthMin, roomLengthMin);
+        allNodesCollection = bsp.PrepareNodesCollection(maxIterations, roomWidthMin, roomLengthMin);
         List<Node> roomSpaces = StructureHelper.TraverseGraphToExtractLowestLeaves(bsp.RootNode);
 
         RoomGenerator roomGenerator = new RoomGenerator(maxIterations, roomLengthMin, roomWidthMin);
         List<RoomNode> roomList = roomGenerator.GenerateRoomsInSpaces(roomSpaces, roomBottomCornerModifier, roomTopCornerModifier, roomOffset);
 
-        return new List<Node>(roomList);
+        CorridorsGenerator corridorGenerator = new CorridorsGenerator();
+        var corridorsList = corridorGenerator.CreateCorridor(allNodesCollection, corridorWidth);
+
+        return new List<Node>(roomList).Concat(corridorsList).ToList();
     }
 }
