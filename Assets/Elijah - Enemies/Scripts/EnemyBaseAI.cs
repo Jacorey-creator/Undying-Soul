@@ -9,6 +9,7 @@ public enum State {
 	ATTACK,
 	DEATH,
 	DASH,
+	THROW,
 }
 
 [RequireComponent(typeof(NavMeshAgent))]
@@ -16,6 +17,7 @@ public class EnemyBaseAI : MonoBehaviour {
 	private NavMeshAgent agent;
 	private Transform target;
 	[SerializeField] private State curState;
+	[SerializeField] private State[] states;
 
 	[Header("References")]
 	public Animator animator;
@@ -31,20 +33,22 @@ public class EnemyBaseAI : MonoBehaviour {
 	private float idleTimer;
 	private float attackTimer;
 
+	public float health = 10f;
+
 	void Awake() {
 		agent = GetComponent<NavMeshAgent>();
 	}
 
 	void Start() {
-		switchState(State.IDLE);
-
-		//GameObject player = GameObject.FindWithTag("Player");
-		//if (player != null)
-		//	target = player.transform;
+		GameObject player = GameObject.FindWithTag("Player");
+		if (player != null)
+			target = player.transform;
+		
+		switchState(states[0]);
 	}
 
 	void Update() {
-		//if (target != null) agent.SetDestination(target.position);
+		if (health <= 0) switchState(states[states.Length - 1]);
 
 		switch (curState) {
 			case State.IDLE:
@@ -65,6 +69,9 @@ public class EnemyBaseAI : MonoBehaviour {
 			case State.DASH:
 				dashUpdate();
 				break;
+			case State.THROW:
+				throwUpdate();
+				break;
 		}
 	}
 
@@ -76,12 +83,13 @@ public class EnemyBaseAI : MonoBehaviour {
 				// play animation then patrol or chase
 				playAnim(3f);
 				if (Vector3.Distance(transform.position, target.position) < detectionRange) {
-
-				} else { 
-				
+					switchState(State.CHASE);
+				} else {
+					switchState(State.PATROL);
 				}
 				break;
 			case State.PATROL:
+				target = patrolPoints[Random.Range(0, patrolPoints.Length)];
 				break;
 			case State.CHASE:
 				GameObject p = GameObject.FindWithTag("Player");
@@ -89,8 +97,10 @@ public class EnemyBaseAI : MonoBehaviour {
 					target = p.transform;
 				break;
 			case State.ATTACK:
+				playAnim(3f);
 				break;
 			case State.DEATH:
+
 				break;
 			case State.DASH:
 				break;
@@ -106,7 +116,11 @@ public class EnemyBaseAI : MonoBehaviour {
 	}
 
 	void patrolUpdate() {
-	
+		if (Vector3.Distance(transform.position, target.position) < 1) {
+			switchState(states[0]);
+			target = patrolPoints[Random.Range(0, patrolPoints.Length)];
+			return;
+		}
 	}
 
 	void chaseUpdate() {
@@ -136,6 +150,10 @@ public class EnemyBaseAI : MonoBehaviour {
 	}
 
 	void dashUpdate() {
+	
+	}
+
+	void throwUpdate() {
 	
 	}
 }
