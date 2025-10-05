@@ -41,7 +41,7 @@ public class PlayerHealthController : MonoBehaviour
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        PlaySound(damageClip);
+        AudioHelper.PlaySound(damageClip, audioSource);
 
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
@@ -63,7 +63,7 @@ public class PlayerHealthController : MonoBehaviour
     {
         Debug.Log($"{gameObject.name} died!");
 
-        PlaySound(deathClip);
+        AudioHelper.PlaySound(deathClip, audioSource);
 
         OnDeath?.Invoke();
     }
@@ -72,19 +72,5 @@ public class PlayerHealthController : MonoBehaviour
     {
         currentHealth = maxHealth;
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
-    }
-
-    private void PlaySound(AudioClip clip)
-    {
-        if (audioSource == null || clip == null)
-            return;
-
-        // Interrupt any currently playing sound
-        if (audioSource.isPlaying)
-            audioSource.Stop();
-
-        // Small pitch variation adds life to repeat sounds
-        audioSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
-        audioSource.PlayOneShot(clip);
     }
 }

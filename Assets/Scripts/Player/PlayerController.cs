@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour
     [Header("Weapon Settings")]
     [SerializeField] private WeaponType currentWeapon = WeaponType.None;
 
+
     private float nextPossessTime = 0f;
 
     public static event Action<GameObject> OnPossessAttempt;
@@ -91,8 +92,10 @@ public class PlayerController : MonoBehaviour
             {
                 // Try to possess nearest
                 GameObject closest = FindClosestPossessable();
-                if (closest != null)
+                if (closest != null) 
+                {
                     OnPossessAttempt?.Invoke(closest);
+                }
             }
         }
     }

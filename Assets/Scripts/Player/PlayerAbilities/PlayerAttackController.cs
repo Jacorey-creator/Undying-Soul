@@ -33,8 +33,7 @@ public class PlayerAttackController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<PlayerController>();
-        if (audioSource == null)
-            audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)  audioSource = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -68,7 +67,6 @@ public class PlayerAttackController : MonoBehaviour
                 break;
         }
     }
-
     private void PerformSwipeAttack()
     {
         Vector3 attackOrigin = transform.position + transform.forward * 1f;
@@ -85,7 +83,7 @@ public class PlayerAttackController : MonoBehaviour
             enemy.ApplyKnockback(knockDir * knockbackForce);
         }
 
-        PlaySound(attackClip);
+        AudioHelper.PlaySound(attackClip,audioSource);
         OnAttack?.Invoke();
         Debug.Log($"{name} performed a basic swipe attack!");
     }
@@ -106,7 +104,7 @@ public class PlayerAttackController : MonoBehaviour
             enemy.ApplyKnockback(knockDir * knockbackForce * soulSwordKnockbackMultiplier);
         }
 
-        PlaySound(soulSwordSound);
+        AudioHelper.PlaySound(soulSwordSound,audioSource);
         OnAttack?.Invoke();
         Debug.Log($"{name} unleashed a Soul Sword attack!");
     }
@@ -133,21 +131,9 @@ public class PlayerAttackController : MonoBehaviour
             }
         }
 
-        PlaySound(screamClip);
+        AudioHelper.PlaySound(screamClip, audioSource);
         OnScream?.Invoke();
         Debug.Log($"{name} screamed!");
-    }
-    private void PlaySound(AudioClip clip)
-    {
-        if (audioSource == null || clip == null)
-            return;
-
-        // Interrupt currently playing sounds
-        if (audioSource.isPlaying)
-            audioSource.Stop();
-
-        audioSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
-        audioSource.PlayOneShot(clip);
     }
 
     private void OnDrawGizmosSelected()
