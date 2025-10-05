@@ -21,7 +21,8 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	[Header("References")]
 	public Animator animator;
-	public Transform[] patrolPoints;
+	public Vector3[] patrolPoints;
+	[SerializeField] GameObject hurtbox;
 
 	[Header("Settings")]
 	public float idleDuration = 2f;
@@ -35,6 +36,18 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	public float health = 10f;
 
+	[SerializeField] private Vector3 knockbackDisplacement;
+	[SerializeField] private float knockbackDecay = 10f; // how fast knockback fades
+
+	[SerializeField] public int fearThreshold = 1; // higher = braver enemies
+
+	private bool isStunned = false;
+	private float stunTimer = 0f;
+
+	private bool isScared = false;
+	private float scaredTimer = 0f;
+	private Vector3 scaredDirection;
+
 	void Awake() {
 		agent = GetComponent<NavMeshAgent>();
 	}
@@ -44,11 +57,13 @@ public class EnemyBaseAI : MonoBehaviour {
 		if (player != null)
 			target = player.transform;
 		
-		switchState(states[0]);
+		hurtbox.SetActive(false);
+
+		SwitchState(states[0]);
 	}
 
 	void Update() {
-		if (health <= 0) switchState(states[states.Length - 1]);
+		if (health <= 0) SwitchState(states[states.Length - 1]);
 
 		switch (curState) {
 			case State.IDLE:
@@ -75,21 +90,22 @@ public class EnemyBaseAI : MonoBehaviour {
 		}
 	}
 
-	void switchState(State newState) {
+	IEnumerator SwitchState(State newState) {
 		curState = newState;
 
 		switch (curState) {
 			case State.IDLE:
 				// play animation then patrol or chase
-				playAnim(3f);
+				animator.SetTrigger("DoIdle");
+				yield return new WaitForSeconds(3f);
 				if (Vector3.Distance(transform.position, target.position) < detectionRange) {
-					switchState(State.CHASE);
+					SwitchState(State.CHASE);
 				} else {
-					switchState(State.PATROL);
+					SwitchState(State.PATROL);
 				}
 				break;
 			case State.PATROL:
-				target = patrolPoints[Random.Range(0, patrolPoints.Length)];
+				target.position = patrolPoints[Random.Range(0, patrolPoints.Length)];
 				break;
 			case State.CHASE:
 				GameObject p = GameObject.FindWithTag("Player");
@@ -97,17 +113,20 @@ public class EnemyBaseAI : MonoBehaviour {
 					target = p.transform;
 				break;
 			case State.ATTACK:
-				playAnim(3f);
 				break;
 			case State.DEATH:
-
+				playAnim(3f, "DoDeath");
+				Destroy(gameObject);
 				break;
 			case State.DASH:
 				break;
 		}
+
+		yield return new WaitForSeconds(0.1f);
 	}
 
-	IEnumerator playAnim(float time) {
+	IEnumerator playAnim(float time, string a) {
+		animator.SetTrigger(a);
 		yield return new WaitForSeconds(time);
 	}
 
@@ -117,8 +136,12 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	void patrolUpdate() {
 		if (Vector3.Distance(transform.position, target.position) < 1) {
-			switchState(states[0]);
-			target = patrolPoints[Random.Range(0, patrolPoints.Length)];
+			SwitchState(states[0]);
+			return;
+		}
+
+		if (Vector3.Distance(transform.position, target.position) < detectionRange) {
+			SwitchState(State.CHASE);
 			return;
 		}
 	}
@@ -126,7 +149,7 @@ public class EnemyBaseAI : MonoBehaviour {
 	void chaseUpdate() {
 		if (target != null) agent.SetDestination(target.position);
 
-		if (Vector3.Distance(transform.position, transform.position) <= attackRange) switchState(State.ATTACK);
+		if (Vector3.Distance(transform.position, transform.position) <= attackRange) SwitchState(State.ATTACK);
 	}
 
 	void attackUpdate() {
@@ -135,13 +158,14 @@ public class EnemyBaseAI : MonoBehaviour {
 		attackTimer -= Time.deltaTime;
 
 		if (Vector3.Distance(transform.position, target.position) > attackRange + 0.5f) {
-			switchState(State.CHASE);
+			SwitchState(State.CHASE);
 			return;
 		}
 
 		if (attackTimer <= 0f) {
 			animator.SetTrigger("DoAttack");
-			playAnim(attackCooldown);
+			//playAnim(attackCooldown);
+			attackTimer = attackCooldown;
 		}
 	}
 
@@ -155,5 +179,23 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	void throwUpdate() {
 	
+	}
+
+	public void ApplyKnockback(Vector3 displacement)
+	{
+		knockbackDisplacement = displacement; // assign new push vector
+	}
+	public void Stun(float duration)
+	{
+		isStunned = true;
+		stunTimer = duration;
+		agent.ResetPath(); // stop immediately
+	}
+
+	public void Scare(float duration, Vector3 fromPosition)
+	{
+		isScared = true;
+		scaredTimer = duration;
+		scaredDirection = (transform.position - fromPosition).normalized;
 	}
 }
