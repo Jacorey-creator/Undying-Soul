@@ -28,14 +28,14 @@ public class BinarySpacePartitioner
 
             if (currentNode.Width >= roomWidthMin*2 || currentNode.Length >= roomLengthMin * 2)
             {
-                SplitTheSpace(currentNode, listToReturn, roomWidthMin, roomLengthMin, graph);
+                SplitTheSpace(currentNode, listToReturn, roomLengthMin, roomWidthMin, graph);
             }
         }
 
         return listToReturn;
     }
 
-    private void SplitTheSpace(RoomNode currentNode, List<RoomNode> listToReturn, int roomWidthMin, int roomLengthMin, Queue<RoomNode> graph)
+    private void SplitTheSpace(RoomNode currentNode, List<RoomNode> listToReturn, int roomLengthMin, int roomWidthMin, Queue<RoomNode> graph)
     {
         Line line = GetLineDividingSpace(
             currentNode.BottomLeftAreaCorner,
@@ -44,17 +44,17 @@ public class BinarySpacePartitioner
             roomLengthMin
             );
 
-        RoomNode firstChildNode;
-        RoomNode secondChildNode;
+        RoomNode node1, node2;
 
         if (line.Orientation == Orientation.Horizontal)
         {
-            firstChildNode = new RoomNode(currentNode.BottomLeftAreaCorner,
+            node1 = new RoomNode(currentNode.BottomLeftAreaCorner,
                 new Vector2Int(currentNode.TopRightAreaCorner.x, line.Coordinates.y),
                 currentNode,
                 currentNode.TreeLayerIndex + 1
                 );
-            secondChildNode = new RoomNode(new Vector2Int(currentNode.BottomLeftAreaCorner.x, line.Coordinates.y),
+
+            node2 = new RoomNode(new Vector2Int(currentNode.BottomLeftAreaCorner.x, line.Coordinates.y),
                 currentNode.TopRightAreaCorner,
                 currentNode,
                 currentNode.TreeLayerIndex + 1
@@ -62,19 +62,21 @@ public class BinarySpacePartitioner
         }
         else
         {
-            firstChildNode = new RoomNode(currentNode.BottomLeftAreaCorner,
+            node1 = new RoomNode(currentNode.BottomLeftAreaCorner,
                 new Vector2Int(line.Coordinates.x, currentNode.TopRightAreaCorner.y),
                 currentNode,
                 currentNode.TreeLayerIndex + 1
                 );
-            secondChildNode = new RoomNode(new Vector2Int(line.Coordinates.x, currentNode.BottomLeftAreaCorner.y),
+
+            node2 = new RoomNode(new Vector2Int(line.Coordinates.x, currentNode.BottomLeftAreaCorner.y),
                 currentNode.TopRightAreaCorner,
                 currentNode,
                 currentNode.TreeLayerIndex + 1
                 );
         }
         
-        AddNewNodesToCollections(listToReturn, graph, firstChildNode);
+        AddNewNodesToCollections(listToReturn, graph, node1);
+        AddNewNodesToCollections(listToReturn, graph, node2);
     }
 
     private void AddNewNodesToCollections(List<RoomNode> listToReturn, Queue<RoomNode> graph, RoomNode firstChildNode)
@@ -92,9 +94,9 @@ public class BinarySpacePartitioner
         {
             orientation = (Orientation)Random.Range(0, 2);
         }
-        else if (lengthStatus)
+        else if (widthStatus)
         {
-            orientation = Orientation.Horizontal;
+            orientation = Orientation.Vertical;
         }
         else
         {

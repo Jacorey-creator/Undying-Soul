@@ -5,17 +5,17 @@ using Random = UnityEngine.Random;
 
 public static class StructureHelper
 {
-    public static List<Node> TraverseGraphToExtractLowestLeaves(RoomNode rootNode)
+    public static List<Node> TraverseGraphToExtractLowestLeaves(RoomNode parentNode)
     {
         Queue<Node> nodesToCheck = new Queue<Node>();
         List<Node> listToReturn = new List<Node>();
 
-        if(rootNode.ChildrenNodeList.Count == 0)
+        if(parentNode.ChildrenNodeList.Count == 0)
         {
-            return new List<Node>() { rootNode };
+            return new List<Node>() { parentNode };
         }
 
-        foreach (var child in rootNode.ChildrenNodeList)
+        foreach (var child in parentNode.ChildrenNodeList)
         {
             nodesToCheck.Enqueue(child);
         }
@@ -58,8 +58,8 @@ public static class StructureHelper
         int minY = boundaryLeftPoint.y + offset;
         int maxY = boundaryRightPoint.y - offset;
         return new Vector2Int(
-            Random.Range((int)(maxX - (maxX - minX) * pointModifier), maxX),
-            Random.Range((int)(maxY - (maxY - minY) * pointModifier), maxY)
+            Random.Range((int)(minX + (maxX - minX) * pointModifier), maxX),
+            Random.Range((int)(minY + (maxY - minY) * pointModifier), maxY)
         );
     }
 }
