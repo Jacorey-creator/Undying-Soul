@@ -9,6 +9,8 @@ public class PlayerDeathHandler : MonoBehaviour
     [Header("Death Settings")]
     [SerializeField] private GameObject deathEffect;
     [SerializeField] private Canvas deathScreen;
+    [SerializeField] DeathUIController deathUIController;
+
 
     private void Awake()
     {
@@ -41,6 +43,8 @@ public class PlayerDeathHandler : MonoBehaviour
         // Show death screen (optional)
         if (deathScreen != null)
             deathScreen.enabled = true;
+
+        deathUIController.ShowDeathScreen();
 
          Destroy(gameObject, 2f);
     }
