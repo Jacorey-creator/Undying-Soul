@@ -10,6 +10,8 @@ public class CorridorNode : Node
     private int corridorWidth;
     private int modifierDistanceFromWall = 1;
     private List<Node> existingRooms = new List<Node>();
+    private int adjustmentAttempts = 0;
+    private const int MAX_ADJUSTMENT_ATTEMPTS = 10;
 
     public CorridorNode(Node node1, Node node2, int corridorWidth) : base(null)
     {
