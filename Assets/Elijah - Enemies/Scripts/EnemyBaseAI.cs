@@ -16,12 +16,12 @@ public enum State {
 public class EnemyBaseAI : MonoBehaviour {
 	private NavMeshAgent agent;
 	private Transform target;
+	private Vector3 targetPos;
 	[SerializeField] private State curState;
 	[SerializeField] private State[] states;
 
 	[Header("References")]
 	public Animator animator;
-	public Vector3[] patrolPoints;
 	[SerializeField] GameObject hurtbox;
 
 	[Header("Settings")]
@@ -29,12 +29,10 @@ public class EnemyBaseAI : MonoBehaviour {
 	public float detectionRange = 10f;
 	public float attackRange = 2f;
 	public float attackCooldown = 1.5f;
-
-	private int currentPatrolIndex;
-	private float idleTimer;
 	private float attackTimer;
 
 	public float health = 10f;
+	[SerializeField] float dmg = 10f;
 
 	[SerializeField] private Vector3 knockbackDisplacement;
 	[SerializeField] private float knockbackDecay = 10f; // how fast knockback fades
@@ -56,14 +54,15 @@ public class EnemyBaseAI : MonoBehaviour {
 		GameObject player = GameObject.FindWithTag("Player");
 		if (player != null)
 			target = player.transform;
-		
+
+		hurtbox.GetComponent<HurtBox>().damage = dmg;
 		hurtbox.SetActive(false);
 
-		SwitchState(states[0]);
+		SwitchState(State.IDLE);
 	}
 
 	void Update() {
-		if (health <= 0) SwitchState(states[states.Length - 1]);
+		if (health <= 0) SwitchState(State.DEATH);
 
 		switch (curState) {
 			case State.IDLE:
@@ -90,44 +89,60 @@ public class EnemyBaseAI : MonoBehaviour {
 		}
 	}
 
-	IEnumerator SwitchState(State newState) {
+	void SwitchState(State newState) {
 		curState = newState;
+		Debug.Log(curState);
 
 		switch (curState) {
 			case State.IDLE:
 				// play animation then patrol or chase
 				animator.SetTrigger("DoIdle");
-				yield return new WaitForSeconds(3f);
-				if (Vector3.Distance(transform.position, target.position) < detectionRange) {
-					SwitchState(State.CHASE);
-				} else {
-					SwitchState(State.PATROL);
-				}
+				StartCoroutine(IdleCoroutine());
 				break;
 			case State.PATROL:
-				target.position = patrolPoints[Random.Range(0, patrolPoints.Length)];
+				Vector3 randomDirection = Random.insideUnitSphere * 5;
+				randomDirection += transform.position;
+
+				NavMeshHit hit;
+
+				// Check if the random point is on the NavMesh
+				if (NavMesh.SamplePosition(randomDirection, out hit, 5, NavMesh.AllAreas)) {
+					targetPos = hit.position;
+					agent.SetDestination(targetPos);
+				} else {
+					// Fallback (if no valid point found)
+					targetPos = transform.position;
+					agent.SetDestination(targetPos);
+				}
 				break;
 			case State.CHASE:
 				GameObject p = GameObject.FindWithTag("Player");
-				if (p != null)
-					target = p.transform;
+				if (p != null) target = p.transform;
 				break;
 			case State.ATTACK:
+				attackTimer = attackCooldown;
 				break;
 			case State.DEATH:
-				playAnim(3f, "DoDeath");
-				Destroy(gameObject);
+				animator.SetTrigger("DoDeath");
+				StartCoroutine(DeathCoroutine());
 				break;
 			case State.DASH:
 				break;
 		}
-
-		yield return new WaitForSeconds(0.1f);
 	}
 
-	IEnumerator playAnim(float time, string a) {
-		animator.SetTrigger(a);
-		yield return new WaitForSeconds(time);
+	IEnumerator IdleCoroutine() {
+		yield return new WaitForSeconds(3f);
+		if (Vector3.Distance(transform.position, target.position) < detectionRange) {
+			SwitchState(State.CHASE);
+		} else {
+			SwitchState(State.PATROL);
+		}
+	}
+
+	IEnumerator DeathCoroutine() {
+		yield return new WaitForSeconds(2f);
+		Destroy(gameObject);
 	}
 
 	void idleUpdate() {
@@ -135,7 +150,7 @@ public class EnemyBaseAI : MonoBehaviour {
 	}
 
 	void patrolUpdate() {
-		if (Vector3.Distance(transform.position, target.position) < 1) {
+		if (Vector3.Distance(transform.position, targetPos) < 2.5f) {
 			SwitchState(states[0]);
 			return;
 		}
@@ -149,7 +164,12 @@ public class EnemyBaseAI : MonoBehaviour {
 	void chaseUpdate() {
 		if (target != null) agent.SetDestination(target.position);
 
-		if (Vector3.Distance(transform.position, transform.position) <= attackRange) SwitchState(State.ATTACK);
+		if (Vector3.Distance(transform.position, target.position) > detectionRange) {
+			SwitchState(State.IDLE);
+			return;
+		}
+
+		if (Vector3.Distance(transform.position, target.position) <= attackRange) SwitchState(State.ATTACK);
 	}
 
 	void attackUpdate() {
@@ -164,13 +184,23 @@ public class EnemyBaseAI : MonoBehaviour {
 
 		if (attackTimer <= 0f) {
 			animator.SetTrigger("DoAttack");
-			//playAnim(attackCooldown);
+
+			Vector3 attackOrigin = transform.position + transform.forward * attackRange;
+			Collider[] hits = Physics.OverlapSphere(attackOrigin, attackRange);
+
+			foreach (Collider hit in hits) {
+				PlayerHealthController enemy = hit.GetComponent<PlayerHealthController>();
+				if (enemy == null) continue;
+
+				enemy.TakeDamage(dmg);
+			}
+
 			attackTimer = attackCooldown;
 		}
 	}
 
 	void deathUpdate() {
-	
+		
 	}
 
 	void dashUpdate() {
@@ -181,19 +211,17 @@ public class EnemyBaseAI : MonoBehaviour {
 	
 	}
 
-	public void ApplyKnockback(Vector3 displacement)
-	{
+	public void ApplyKnockback(Vector3 displacement) {
 		knockbackDisplacement = displacement; // assign new push vector
 	}
-	public void Stun(float duration)
-	{
+
+	public void Stun(float duration) {
 		isStunned = true;
 		stunTimer = duration;
 		agent.ResetPath(); // stop immediately
 	}
 
-	public void Scare(float duration, Vector3 fromPosition)
-	{
+	public void Scare(float duration, Vector3 fromPosition) {
 		isScared = true;
 		scaredTimer = duration;
 		scaredDirection = (transform.position - fromPosition).normalized;

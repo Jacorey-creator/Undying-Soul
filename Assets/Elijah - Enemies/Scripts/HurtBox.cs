@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public class HurtBox : MonoBehaviour {
-	public int damage = 10;
+	public float damage = 10;
 
 	private void OnTriggerEnter(Collider other) {
 		if (other.CompareTag("Player")) {
