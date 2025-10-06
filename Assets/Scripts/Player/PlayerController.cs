@@ -116,10 +116,6 @@ public class PlayerController : MonoBehaviour
                     StartCoroutine(PlayPossessionAnimation(isUnpossess: false, target: closest));
             }
         }
-
-        // Test damage shortcut
-        if (Input.GetKeyDown(KeyCode.C))
-            GetComponent<PlayerHealthController>().TakeDamage(0.5f);
     }
     public void OnPossessionEnd()
     {

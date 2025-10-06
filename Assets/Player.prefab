@@ -343,10 +343,10 @@ MonoBehaviour:
   player_health: 10
   swipe_damage: 5
   atk_speed: 0.5
-  possess_cooldown: 0
-  scream_cooldown: 0
+  possess_cooldown: 10
+  scream_cooldown: 15
   scream_level: 1
-  essence_stored: 500
+  essence_stored: 5
   currentWeapon: 0
 --- !u!114 &6618476188891653243
 MonoBehaviour:
@@ -623,6 +623,18 @@ PrefabInstance:
     - target: {fileID: 6019177770820745247, guid: b0629f52d0442484eae8c40253d50185, type: 3}
       propertyPath: m_Name
       value: SamplePlayer
+      objectReference: {fileID: 0}
+    - target: {fileID: 7009140737947238041, guid: b0629f52d0442484eae8c40253d50185, type: 3}
+      propertyPath: essence_stored
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7009140737947238041, guid: b0629f52d0442484eae8c40253d50185, type: 3}
+      propertyPath: scream_cooldown
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7009140737947238041, guid: b0629f52d0442484eae8c40253d50185, type: 3}
+      propertyPath: possess_cooldown
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
