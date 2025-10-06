@@ -34,13 +34,17 @@ public class DungeonCreator : MonoBehaviour
     [SerializeField] private Vector3 dungeonStartPosition = Vector3.zero;
     [SerializeField] private Vector3 dungeonRotation = Vector3.zero;
     [SerializeField] private Vector3 dungeonScale = Vector3.one;
-    
+
     [Header("Spawning System")]
     [SerializeField] private List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
     [SerializeField] private List<ObjectSpawner> objectSpawners = new List<ObjectSpawner>();
     [SerializeField] private bool enableSpawning = true;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private Node entranceCorridor; // Track entrance corridor
+
+    [Header("Generation Settings")]
+    [SerializeField] private int maxGenerationAttempts = 5;
+
     void Start()
     {
         CreateDungeon();
@@ -48,11 +52,44 @@ public class DungeonCreator : MonoBehaviour
 
     public void CreateDungeon()
     {
-        DestroyAllChildren();
-        
-        // Clear all spawners before generating
-        ClearAllSpawners();
-        
+        int attempts = 0;
+        bool success = false;
+
+        while (!success && attempts < maxGenerationAttempts)
+        {
+            attempts++;
+            try
+            {
+                DestroyAllChildren();
+                ClearAllSpawners();
+
+                GenerateDungeonInternal();
+                success = true;
+
+                Debug.Log($"Dungeon generated successfully on attempt {attempts}");
+            }
+            catch (StackOverflowException)
+            {
+                Debug.LogWarning($"Dungeon generation failed (stack overflow) on attempt {attempts}. Retrying...");
+                DestroyAllChildren();
+                ClearAllSpawners();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Dungeon generation failed on attempt {attempts}: {e.Message}");
+                DestroyAllChildren();
+                ClearAllSpawners();
+            }
+        }
+
+        if (!success)
+        {
+            Debug.LogError($"Failed to generate dungeon after {maxGenerationAttempts} attempts. Try adjusting generation parameters.");
+        }
+    }
+
+    private void GenerateDungeonInternal()
+    {
         DungeonGenerator generator = new DungeonGenerator(dungeonWidth, dungeonLength);
         var listOfRooms = generator.CalculateRooms(
             maxIterations,
@@ -63,6 +100,8 @@ public class DungeonCreator : MonoBehaviour
             roomOffset,
             corridorWidth);
 
+        // Store reference to entrance corridor
+        entranceCorridor = generator.EntranceCorridor;
 
         GameObject wallParent = new GameObject("WallParent");
         wallParent.transform.parent = transform;
@@ -73,12 +112,11 @@ public class DungeonCreator : MonoBehaviour
 
         for (int i = 0; i < listOfRooms.Count; i++)
         {
-            CreateMesh(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner);
-            
+            CreateMesh(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, listOfRooms[i]);
+
             // Spawn enemies and objects in rooms only
             if (enableSpawning && listOfRooms[i] is RoomNode)
             {
-                // Spawn enemies from all enemy spawners
                 foreach (var enemySpawner in enemySpawners)
                 {
                     if (enemySpawner != null)
@@ -86,8 +124,7 @@ public class DungeonCreator : MonoBehaviour
                         enemySpawner.SpawnEnemies(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform, dungeonStartPosition, dungeonRotation, dungeonScale);
                     }
                 }
-                
-                // Spawn objects from all object spawners
+
                 foreach (var objectSpawner in objectSpawners)
                 {
                     if (objectSpawner != null)
@@ -100,7 +137,6 @@ public class DungeonCreator : MonoBehaviour
 
         CreateWalls(wallParent);
 
-        //after generating, rebake the passed navmesh
         if (navMeshSurface != null)
         {
             navMeshSurface.BuildNavMesh();
@@ -116,7 +152,7 @@ public class DungeonCreator : MonoBehaviour
                 enemySpawner.ClearEnemies();
             }
         }
-        
+
         foreach (var objectSpawner in objectSpawners)
         {
             if (objectSpawner != null)
@@ -142,14 +178,13 @@ public class DungeonCreator : MonoBehaviour
     private void CreateWall(GameObject wallParent, Vector3Int wallPosition, GameObject wallPrefab)
     {
         GameObject wall = Instantiate(wallPrefab, wallPosition, Quaternion.identity, wallParent.transform);
-        
-        // Apply dungeon transform to walls
+
         wall.transform.position += dungeonStartPosition;
         wall.transform.rotation = Quaternion.Euler(dungeonRotation);
         wall.transform.localScale = Vector3.Scale(wall.transform.localScale, dungeonScale);
     }
 
-    private void CreateMesh(Vector2 bottomLeftCorner, Vector2 topRightCorner)
+    private void CreateMesh(Vector2 bottomLeftCorner, Vector2 topRightCorner, Node currentNode)
     {
         Vector3 bottomLeftV = new Vector3(bottomLeftCorner.x, 0, bottomLeftCorner.y);
         Vector3 bottomRightV = new Vector3(topRightCorner.x, 0, bottomLeftCorner.y);
@@ -183,7 +218,6 @@ public class DungeonCreator : MonoBehaviour
 
         GameObject dungeonFloor = new GameObject("Mesh" + bottomLeftCorner, typeof(MeshFilter), typeof(MeshRenderer));
 
-        // Apply dungeon transform
         dungeonFloor.transform.position = dungeonStartPosition;
         dungeonFloor.transform.rotation = Quaternion.Euler(dungeonRotation);
         dungeonFloor.transform.localScale = dungeonScale;
@@ -191,29 +225,101 @@ public class DungeonCreator : MonoBehaviour
         dungeonFloor.GetComponent<MeshRenderer>().material = material;
         dungeonFloor.transform.parent = transform;
 
-
-        for (int row = (int)bottomLeftV.x; row < (int)bottomRightV.x; row++)
+        // Skip all wall generation for entrance corridor
+        if (currentNode == entranceCorridor)
         {
-            var wallPosition = new Vector3(row, 0, bottomLeftV.z);
-            AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizotalPosition);
+            return;
         }
 
-        for (int row = (int)topLeftV.x; row < (int)topRightCorner.x; row++)
+        // Check if any edge connects to the entrance corridor to prevent walls there
+        bool bottomConnectsToEntrance = false;
+        bool topConnectsToEntrance = false;
+        bool leftConnectsToEntrance = false;
+        bool rightConnectsToEntrance = false;
+
+        if (entranceCorridor != null)
         {
-            var wallPosition = new Vector3(row, 0, topRightV.z);
-            AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizotalPosition);
-        }
-        for (int column = (int)bottomLeftV.z; column < (int)topLeftV.z; column++)
-        {
-            var wallPosition = new Vector3(bottomLeftV.x, 0, column);
-            AddWallPositionToList(wallPosition, possibleWallVerticalPosition, possibleDoorVerticalPosition);
-        }
-        for (int column = (int)bottomRightV.z; column < (int)topRightV.z; column++)
-        {
-            var wallPosition = new Vector3(bottomRightV.x, 0, column);
-            AddWallPositionToList(wallPosition, possibleWallVerticalPosition, possibleDoorVerticalPosition);
+            Vector2Int entranceBottomLeft = entranceCorridor.BottomLeftAreaCorner;
+            Vector2Int entranceTopRight = entranceCorridor.TopRightAreaCorner;
+
+            // Check if entrance corridor shares an edge with this room
+            // Bottom edge
+            if (Mathf.Approximately(bottomLeftCorner.y, entranceTopRight.y) ||
+                Mathf.Approximately(bottomLeftCorner.y, entranceBottomLeft.y))
+            {
+                if (bottomLeftCorner.x < entranceTopRight.x && topRightCorner.x > entranceBottomLeft.x)
+                {
+                    bottomConnectsToEntrance = true;
+                }
+            }
+            // Top edge
+            if (Mathf.Approximately(topRightCorner.y, entranceBottomLeft.y) ||
+                Mathf.Approximately(topRightCorner.y, entranceTopRight.y))
+            {
+                if (bottomLeftCorner.x < entranceTopRight.x && topRightCorner.x > entranceBottomLeft.x)
+                {
+                    topConnectsToEntrance = true;
+                }
+            }
+            // Left edge
+            if (Mathf.Approximately(bottomLeftCorner.x, entranceTopRight.x) ||
+                Mathf.Approximately(bottomLeftCorner.x, entranceBottomLeft.x))
+            {
+                if (bottomLeftCorner.y < entranceTopRight.y && topRightCorner.y > entranceBottomLeft.y)
+                {
+                    leftConnectsToEntrance = true;
+                }
+            }
+            // Right edge
+            if (Mathf.Approximately(topRightCorner.x, entranceBottomLeft.x) ||
+                Mathf.Approximately(topRightCorner.x, entranceTopRight.x))
+            {
+                if (bottomLeftCorner.y < entranceTopRight.y && topRightCorner.y > entranceBottomLeft.y)
+                {
+                    rightConnectsToEntrance = true;
+                }
+            }
         }
 
+        // Bottom wall
+        if (!bottomConnectsToEntrance)
+        {
+            for (int row = (int)bottomLeftV.x; row < (int)bottomRightV.x; row++)
+            {
+                var wallPosition = new Vector3(row, 0, bottomLeftV.z);
+                AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizotalPosition);
+            }
+        }
+
+        // Top wall
+        if (!topConnectsToEntrance)
+        {
+            for (int row = (int)topLeftV.x; row < (int)topRightCorner.x; row++)
+            {
+                var wallPosition = new Vector3(row, 0, topRightV.z);
+                AddWallPositionToList(wallPosition, possibleWallHorizontalPosition, possibleDoorHorizotalPosition);
+            }
+        }
+
+        // Left wall
+        if (!leftConnectsToEntrance)
+        {
+            for (int column = (int)bottomLeftV.z; column < (int)topLeftV.z; column++)
+            {
+                var wallPosition = new Vector3(bottomLeftV.x, 0, column);
+                AddWallPositionToList(wallPosition, possibleWallVerticalPosition, possibleDoorVerticalPosition);
+            }
+        }
+
+        // Right wall
+        if (!rightConnectsToEntrance)
+        {
+            for (int column = (int)bottomRightV.z; column < (int)topRightV.z; column++)
+            {
+                var wallPosition = new Vector3(bottomRightV.x, 0, column);
+                AddWallPositionToList(wallPosition, possibleWallVerticalPosition, possibleDoorVerticalPosition);
+            }
+        }
     }
 
     private void AddWallPositionToList(Vector3 wallPosition, List<Vector3Int> wallList, List<Vector3Int> doorList)
