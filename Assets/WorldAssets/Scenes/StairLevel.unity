@@ -1880,7 +1880,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &32014045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1964,7 +1964,7 @@ Transform:
   m_GameObject: {fileID: 32014044}
   serializedVersion: 2
   m_LocalRotation: {x: 0.35355338, y: 0.35355338, z: -0.1464466, w: 0.8535535}
-  m_LocalPosition: {x: -7, y: 12.106602, z: -7.499998}
+  m_LocalPosition: {x: 48, y: 12.106602, z: -7.499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9380,7 +9380,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &200536536
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9394,16 +9394,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 200536538}
-  essence_stored: 0
   healthUIController: {fileID: 0}
+  animator: {fileID: 0}
   move_speed: 5
   turn_speed: 360
   player_health: 10
   swipe_damage: 1
+  atk_speed: 0.5
   possess_cooldown: 0
   scream_cooldown: 10
   scream_level: 0
-  atk_speed: 0.5
+  essence_stored: 0
   currentWeapon: 0
 --- !u!114 &200536537
 MonoBehaviour:
@@ -9529,7 +9530,7 @@ Transform:
   m_GameObject: {fileID: 200536535}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 55, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -38043,7 +38044,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &668415234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38076,7 +38077,7 @@ Transform:
   m_GameObject: {fileID: 668415233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7.8595157, y: 6.712896, z: 8.085097}
+  m_LocalPosition: {x: 62.859512, y: 6.712896, z: 8.085097}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -38536,7 +38537,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &681896293
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -38621,7 +38622,7 @@ Transform:
   m_GameObject: {fileID: 681896292}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 55, y: 0, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -56354,7 +56355,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &982296553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56499,7 +56500,7 @@ Transform:
   m_GameObject: {fileID: 982296552}
   serializedVersion: 2
   m_LocalRotation: {x: 0.35355338, y: 0.35355338, z: -0.1464466, w: 0.8535535}
-  m_LocalPosition: {x: -7, y: 12.106602, z: -7.499998}
+  m_LocalPosition: {x: 48, y: 12.106602, z: -7.499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -78854,7 +78855,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1419755340
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -78881,7 +78882,7 @@ Transform:
   m_GameObject: {fileID: 1419755339}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 55, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -89715,7 +89716,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!195 &1612573740
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -89820,16 +89821,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb: {fileID: 1612573742}
-  essence_stored: 0
   healthUIController: {fileID: 0}
+  animator: {fileID: 0}
   move_speed: 2
   turn_speed: 360
   player_health: 10
   swipe_damage: 1
+  atk_speed: 0.5
   possess_cooldown: 0
   scream_cooldown: 10
   scream_level: 0
-  atk_speed: 0.5
+  essence_stored: 0
   currentWeapon: 0
 --- !u!136 &1612573746
 CapsuleCollider:
@@ -89916,7 +89918,7 @@ Transform:
   m_GameObject: {fileID: 1612573739}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12, y: 1, z: 0}
+  m_LocalPosition: {x: 67, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -95147,7 +95149,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1710893467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -95162,8 +95164,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SerializedVersion: 0
   m_AgentTypeID: 0
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
+  m_CollectObjects: 1
+  m_Size: {x: 150, y: 10, z: 100}
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
@@ -95178,7 +95180,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: fbc2c003402f2f74881a296212535224, type: 2}
+  m_NavMeshData: {fileID: 23800000, guid: 47d43c684379a0645ab82c953177d387, type: 2}
   m_BuildHeightMesh: 0
 --- !u!4 &1710893468
 Transform:
@@ -95189,8 +95191,8 @@ Transform:
   m_GameObject: {fileID: 1710893466}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.9066286, y: 4.133074, z: -0.11591625}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 111.3, y: -3.8, z: 10.9}
+  m_LocalScale: {x: 2, y: 0.2896, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
