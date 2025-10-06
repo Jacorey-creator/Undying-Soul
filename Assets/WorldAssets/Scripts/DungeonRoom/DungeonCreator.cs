@@ -2,10 +2,13 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.UIElements;
 using System;
+using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 public class DungeonCreator : MonoBehaviour
 {
 
+    [SerializeField] public NavMeshSurface navMeshSurface;
     [SerializeField] public int dungeonWidth, dungeonLength;
     [SerializeField] public int roomWidthMin, roomLengthMin;
     [SerializeField] public int maxIterations;
@@ -96,8 +99,14 @@ public class DungeonCreator : MonoBehaviour
         }
 
         CreateWalls(wallParent);
+
+        //after generating, rebake the passed navmesh
+        if (navMeshSurface != null)
+        {
+            navMeshSurface.BuildNavMesh();
+        }
     }
-    
+
     private void ClearAllSpawners()
     {
         foreach (var enemySpawner in enemySpawners)
