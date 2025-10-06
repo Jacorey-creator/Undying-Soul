@@ -2,6 +2,11 @@
 
 public class RoomNode : Node
 {
+    // Updated default constructor to pass a default value for the required 'parentNode' parameter.
+    public RoomNode() : base(null)
+    {
+    }
+
     public RoomNode(Vector2Int bottomLeftAreaCorner, Vector2Int topRightAreaCorner, Node parentNode, int index) : base(parentNode)
     {
         this.BottomLeftAreaCorner = bottomLeftAreaCorner;

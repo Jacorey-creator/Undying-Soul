@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 2e85bc1aaf18eb24db56cda95f731dfe
   - enabled: 1
+    path: Assets/Scenes/MergeSceneTrial1.unity
+    guid: 3ffe5eea90358554a84eed4b896f7b18
+  - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:

@@ -308,7 +308,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 116
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!114 &6224040325715621218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -541,6 +541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   deathEffect: {fileID: 0}
   deathScreen: {fileID: 0}
+  deathUIController: {fileID: 0}
 --- !u!95 &4371302617118714821
 Animator:
   serializedVersion: 7
@@ -571,6 +572,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4487409571363742438}
     m_Modifications:
+    - target: {fileID: 2103296268065248312, guid: b0629f52d0442484eae8c40253d50185, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3197756582391281209, guid: b0629f52d0442484eae8c40253d50185, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
