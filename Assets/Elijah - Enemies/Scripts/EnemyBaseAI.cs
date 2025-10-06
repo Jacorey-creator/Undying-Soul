@@ -141,6 +141,7 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	IEnumerator DeathCoroutine() {
 		yield return new WaitForSeconds(2f);
+		target.gameObject.GetComponent<PlayerAttackController>().checkAliveEnemies();
 		Destroy(gameObject);
 	}
 

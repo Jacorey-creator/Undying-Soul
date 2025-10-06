@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(PlayerController))]
 public class PlayerAttackController : MonoBehaviour
@@ -154,7 +155,7 @@ public class PlayerAttackController : MonoBehaviour
 
     public void checkAliveEnemies() {
 		if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0) {
-
+			SceneManager.LoadScene("MainMenu");
 		}
 	}
 }
