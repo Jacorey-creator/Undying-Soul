@@ -4,6 +4,8 @@ using UnityEngine;
 public class PlayerMovementController : MonoBehaviour
 {
     [SerializeField] private PlayerController player_controller;
+    [SerializeField] private PlayerSpriteDirectionController spriteController;
+
 
     private Vector3 _input;
 
@@ -11,6 +13,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         GatherInput();
         Look();
+        if (spriteController != null ) spriteController.UpdateDirection(_input);
     }
     private void FixedUpdate()
     {
@@ -37,6 +40,7 @@ public class PlayerMovementController : MonoBehaviour
     {
         Vector3 moveDir = _input.ToIso();
 
+        player_controller.GetRigidBody().linearVelocity = Vector3.zero; // cancel leftover push velocity
         player_controller.GetRigidBody().MovePosition(transform.position + moveDir * player_controller.GetSpeed() * Time.deltaTime);
     }
     public void SetController(PlayerController controller)
