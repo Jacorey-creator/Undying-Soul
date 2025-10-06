@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public enum WeaponType
@@ -13,34 +14,39 @@ public enum WeaponType
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Core References")]
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private int essence_stored;
     [SerializeField] private HealthUIController healthUIController;
+    [SerializeField] private Animator animator;
 
-    [Header("Movement")]
+    [Header("Player Stats")]
     [SerializeField] private float move_speed = 5f;
     [SerializeField] private float turn_speed = 360f;
-
-    [Header("Skills")]
     [SerializeField] private float player_health = 10f;
     [SerializeField] private float swipe_damage = 1f;
+    [SerializeField] private float atk_speed = 0.5f;
+
+    [Header("Skills & Cooldowns")]
     [SerializeField] private float possess_cooldown = 15f;
     [SerializeField] private float scream_cooldown = 10f;
     [SerializeField] private int scream_level = 0;
-    [SerializeField] private float atk_speed = 0.5f;
+    [SerializeField] private int essence_stored;
 
     [Header("Weapon Settings")]
     [SerializeField] private WeaponType currentWeapon = WeaponType.None;
 
-
     private float nextPossessTime = 0f;
+    private bool isPossessingAnimation = false;
+    private int possessionLayerIndex = -1;
 
+    // ====== EVENTS ======
     public static event Action<GameObject> OnPossessAttempt;
     public static event Action OnUnpossessAttempt;
 
+    // ====== STATE ======
     public bool IsActiveController { get; private set; } = false;
 
-    // ====== Getters ======
+    // ====== GETTERS ======
     public Rigidbody GetRigidBody() => rb;
     public float GetSpeed() => move_speed;
     public float GetTurnSpeed() => turn_speed;
@@ -53,7 +59,7 @@ public class PlayerController : MonoBehaviour
     public int GetEssenceStored() => essence_stored;
     public WeaponType GetCurrentWeapon() => currentWeapon;
 
-    // ====== Setters ======
+    // ====== SETTERS ======
     public void SetActiveController(bool state) => IsActiveController = state;
     public void SetSpeed(float value) => move_speed = Mathf.Max(0, value);
     public void SetTurnSpeed(float value) => turn_speed = Mathf.Max(0, value);
@@ -66,19 +72,31 @@ public class PlayerController : MonoBehaviour
     public void SetMaxHealth(float value) => player_health = Mathf.Max(1, value);
     public void EquipWeapon(WeaponType weapon) => currentWeapon = weapon;
 
+    // ====== UNITY EVENTS ======
     private void Start()
     {
-        IsActiveController = true; // Ghost is input owner initially
-        if (healthUIController) healthUIController.SetTarget(gameObject.GetComponent<PlayerHealthController>());
+        IsActiveController = true;
+
+        if (healthUIController)
+            healthUIController.SetTarget(GetComponent<PlayerHealthController>());
+
+        if (animator)
+        {
+            int layerIndex = animator.GetLayerIndex("PossessionPrep");
+            possessionLayerIndex = layerIndex >= 0 ? layerIndex : -1;
+        }
     }
 
     private void Update()
     {
-        if (!GameStateManager.IsGameplay) return;
-        if (IsActiveController)
+        if (!GameStateManager.IsGameplay)
+            return;
+
+        if (IsActiveController && !isPossessingAnimation)
             HandlePossessionInput();
     }
 
+    // ====== POSSESSION HANDLING ======
     private void HandlePossessionInput()
     {
         if (Time.time < nextPossessTime)
@@ -88,22 +106,82 @@ public class PlayerController : MonoBehaviour
         {
             if (PossessionManager.Instance.IsPossessing)
             {
-                // Unpossess
-                OnUnpossessAttempt?.Invoke();
+                if(animator) OnPossessionEnd();
+                StartCoroutine(PlayPossessionAnimation(isUnpossess: true));
             }
             else
             {
-                // Try to possess nearest
                 GameObject closest = FindClosestPossessable();
                 if (closest != null)
-                {
-                    OnPossessAttempt?.Invoke(closest);
-                }
+                    StartCoroutine(PlayPossessionAnimation(isUnpossess: false, target: closest));
             }
         }
-        if (Input.GetKeyDown(KeyCode.C)) { gameObject.GetComponent<PlayerHealthController>().TakeDamage(0.5f); }
+
+        // Test damage shortcut
+        if (Input.GetKeyDown(KeyCode.C))
+            GetComponent<PlayerHealthController>().TakeDamage(0.5f);
+    }
+    public void OnPossessionEnd()
+    {
+        // Play the unpossession animation
+        animator.SetTrigger("EndPossession");
+    }
+    private IEnumerator PlayPossessionAnimation(bool isUnpossess, GameObject target = null)
+    {
+        isPossessingAnimation = true;
+
+        if (animator == null || possessionLayerIndex < 0)
+        {
+            // Fallback: no animator, perform instantly
+            yield return null;
+            if (isUnpossess)
+                OnUnpossessAttempt?.Invoke();
+            else if (target != null)
+                OnPossessAttempt?.Invoke(target);
+
+            SetPossessionCooldown();
+            isPossessingAnimation = false;
+            yield break;
+        }
+
+        // Fade in Possession layer
+        float fadeIn = 0f;
+        while (fadeIn < 1f)
+        {
+            fadeIn += Time.deltaTime * 5f;
+            animator.SetLayerWeight(possessionLayerIndex, Mathf.Lerp(0f, 1f, fadeIn));
+            yield return null;
+        }
+
+        // Trigger the animation
+        string triggerName = isUnpossess ? "Unpossess" : "StartPossession";
+        animator.SetTrigger(triggerName);
+
+        yield return null; // let animator update
+
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(possessionLayerIndex);
+        float animLength = stateInfo.length / Mathf.Max(stateInfo.speed, 0.01f);
+        yield return new WaitForSeconds(animLength);
+
+        if (isUnpossess)
+            OnUnpossessAttempt?.Invoke();
+        else if (target != null)
+            OnPossessAttempt?.Invoke(target);
+
+        // Fade out layer
+        float fadeOut = 0f;
+        while (fadeOut < 1f)
+        {
+            fadeOut += Time.deltaTime * 5f;
+            animator.SetLayerWeight(possessionLayerIndex, Mathf.Lerp(1f, 0f, fadeOut));
+            yield return null;
+        }
+
+        isPossessingAnimation = false;
+        SetPossessionCooldown();
     }
 
+    // ====== FIND NEAREST POSSESSABLE ======
     private GameObject FindClosestPossessable()
     {
         float range = 3f;
@@ -128,6 +206,7 @@ public class PlayerController : MonoBehaviour
         return closest;
     }
 
+    // ====== COOLDOWN ======
     public void SetPossessionCooldown()
     {
         nextPossessTime = Time.time + possess_cooldown;
