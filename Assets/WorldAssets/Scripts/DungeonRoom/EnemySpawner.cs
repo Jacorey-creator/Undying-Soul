@@ -25,7 +25,7 @@ public class EnemySpawner : MonoBehaviour
     
     private List<GameObject> spawnedEnemies = new List<GameObject>();
     
-    public void SpawnEnemies(Vector2Int bottomLeft, Vector2Int topRight, Transform parent)
+    public void SpawnEnemies(Vector2Int bottomLeft, Vector2Int topRight, Transform parent, Vector3 dungeonPosition, Vector3 dungeonRotation, Vector3 dungeonScale)
     {
         if (Random.value <= spawnChance && enemyPrefabs.Count > 0)
         {
@@ -35,7 +35,12 @@ public class EnemySpawner : MonoBehaviour
             {
                 GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Count)];
                 Vector3 spawnPos = GetSpawnPosition(bottomLeft, topRight);
-                GameObject spawned = Instantiate(enemyPrefab, spawnPos, Quaternion.identity, parent);
+                
+                // Apply dungeon transform
+                spawnPos += dungeonPosition;
+                
+                GameObject spawned = Instantiate(enemyPrefab, spawnPos, Quaternion.Euler(dungeonRotation), parent);
+                spawned.transform.localScale = Vector3.Scale(spawned.transform.localScale, dungeonScale);
                 spawnedEnemies.Add(spawned);
             }
         }

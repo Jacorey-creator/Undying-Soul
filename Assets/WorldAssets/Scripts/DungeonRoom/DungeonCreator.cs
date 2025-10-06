@@ -27,6 +27,11 @@ public class DungeonCreator : MonoBehaviour
     List<Vector3Int> possibleWallVerticalPosition;
     List<Vector3Int> possibleWallHorizontalPosition;
 
+    [Header("Dungeon Transform")]
+    [SerializeField] private Vector3 dungeonStartPosition = Vector3.zero;
+    [SerializeField] private Vector3 dungeonRotation = Vector3.zero;
+    [SerializeField] private Vector3 dungeonScale = Vector3.one;
+    
     [Header("Spawning System")]
     [SerializeField] private List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
     [SerializeField] private List<ObjectSpawner> objectSpawners = new List<ObjectSpawner>();
@@ -75,7 +80,7 @@ public class DungeonCreator : MonoBehaviour
                 {
                     if (enemySpawner != null)
                     {
-                        enemySpawner.SpawnEnemies(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform);
+                        enemySpawner.SpawnEnemies(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform, dungeonStartPosition, dungeonRotation, dungeonScale);
                     }
                 }
                 
@@ -84,7 +89,7 @@ public class DungeonCreator : MonoBehaviour
                 {
                     if (objectSpawner != null)
                     {
-                        objectSpawner.SpawnObjects(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform);
+                        objectSpawner.SpawnObjects(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform, dungeonStartPosition, dungeonRotation, dungeonScale);
                     }
                 }
             }
@@ -127,7 +132,12 @@ public class DungeonCreator : MonoBehaviour
 
     private void CreateWall(GameObject wallParent, Vector3Int wallPosition, GameObject wallPrefab)
     {
-        Instantiate(wallPrefab, wallPosition, Quaternion.identity, wallParent.transform);
+        GameObject wall = Instantiate(wallPrefab, wallPosition, Quaternion.identity, wallParent.transform);
+        
+        // Apply dungeon transform to walls
+        wall.transform.position += dungeonStartPosition;
+        wall.transform.rotation = Quaternion.Euler(dungeonRotation);
+        wall.transform.localScale = Vector3.Scale(wall.transform.localScale, dungeonScale);
     }
 
     private void CreateMesh(Vector2 bottomLeftCorner, Vector2 topRightCorner)
@@ -164,8 +174,10 @@ public class DungeonCreator : MonoBehaviour
 
         GameObject dungeonFloor = new GameObject("Mesh" + bottomLeftCorner, typeof(MeshFilter), typeof(MeshRenderer));
 
-        dungeonFloor.transform.position = Vector3.zero;
-        dungeonFloor.transform.localScale = Vector3.one;
+        // Apply dungeon transform
+        dungeonFloor.transform.position = dungeonStartPosition;
+        dungeonFloor.transform.rotation = Quaternion.Euler(dungeonRotation);
+        dungeonFloor.transform.localScale = dungeonScale;
         dungeonFloor.GetComponent<MeshFilter>().mesh = mesh;
         dungeonFloor.GetComponent<MeshRenderer>().material = material;
         dungeonFloor.transform.parent = transform;

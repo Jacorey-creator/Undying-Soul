@@ -66,5 +66,14 @@ public class DungeonCreatorEditor : Editor
         {
             dungeonCreator.gameObject.AddComponent<ObjectSpawner>();
         }
+        
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Debug", EditorStyles.boldLabel);
+        
+        if (GUILayout.Button("Toggle Corridor Debug"))
+        {
+            // This will be handled by the debug logging in CorridorsGenerator
+            Debug.Log("Corridor debug logging is enabled. Check console for corridor generation details.");
+        }
     }
 }
