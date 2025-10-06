@@ -151,4 +151,10 @@ public class PlayerAttackController : MonoBehaviour
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.35f);
         Gizmos.DrawSphere(transform.position, screamRadius);
     }
+
+    public void checkAliveEnemies() {
+		if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0) {
+
+		}
+	}
 }
