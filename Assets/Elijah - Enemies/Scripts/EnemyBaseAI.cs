@@ -22,7 +22,6 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	[Header("References")]
 	public Animator animator;
-	[SerializeField] GameObject hurtbox;
 
 	[Header("Settings")]
 	public float idleDuration = 2f;
@@ -56,14 +55,12 @@ public class EnemyBaseAI : MonoBehaviour {
 			target = player.transform;
 		}
 
-		hurtbox.GetComponent<HurtBox>().damage = dmg;
-		hurtbox.SetActive(false);
-
 		SwitchState(State.IDLE);
 	}
 
 	void Update() {
 		if (health <= 0) SwitchState(State.DEATH);
+		animator.SetFloat("Speed", GetComponent<Rigidbody>().linearVelocity.magnitude);
 
 		switch (curState) {
 			case State.IDLE:
@@ -96,7 +93,7 @@ public class EnemyBaseAI : MonoBehaviour {
 		switch (curState) {
 			case State.IDLE:
 				// play animation then patrol or chase
-				if (animator != null) animator.SetTrigger("DoIdle");
+				//if (animator != null) animator.SetTrigger("DoIdle");
 				StartCoroutine(IdleCoroutine());
 				break;
 			case State.PATROL:
@@ -125,7 +122,7 @@ public class EnemyBaseAI : MonoBehaviour {
 				attackTimer = attackCooldown;
 				break;
 			case State.DEATH:
-				if (animator != null) animator.SetTrigger("DoDeath");
+				if (animator != null) animator.SetBool("Dead", true);
 				StartCoroutine(DeathCoroutine());
 				break;
 			case State.DASH:
@@ -134,7 +131,7 @@ public class EnemyBaseAI : MonoBehaviour {
 	}
 
 	IEnumerator IdleCoroutine() {
-		yield return new WaitForSeconds(3f);
+		yield return new WaitForSeconds(1f);
 		if (Vector3.Distance(transform.position, target.position) < detectionRange) {
 			SwitchState(State.CHASE);
 		} else {
@@ -145,6 +142,11 @@ public class EnemyBaseAI : MonoBehaviour {
 	IEnumerator DeathCoroutine() {
 		yield return new WaitForSeconds(2f);
 		Destroy(gameObject);
+	}
+
+	IEnumerator AttackCoroutine() {
+		yield return new WaitForSeconds(0.7f);
+		animator.SetBool("Attack", false);
 	}
 
 	void idleUpdate() {
@@ -182,12 +184,12 @@ public class EnemyBaseAI : MonoBehaviour {
 		attackTimer -= Time.deltaTime;
 
 		if (Vector3.Distance(transform.position, target.position) > attackRange + 0.5f) {
-			SwitchState(State.CHASE);
+			SwitchState(State.IDLE);
 			return;
 		}
 
 		if (attackTimer <= 0f) {
-			if (animator != null) animator.SetTrigger("DoAttack");
+			if (animator != null) animator.SetBool("Attack", true);
 
 			Vector3 attackOrigin = transform.position + transform.forward * attackRange;
 			Collider[] hits = Physics.OverlapSphere(attackOrigin, attackRange);
@@ -199,6 +201,7 @@ public class EnemyBaseAI : MonoBehaviour {
 				enemy.TakeDamage(dmg);
 			}
 
+			StartCoroutine(AttackCoroutine());
 			attackTimer = attackCooldown;
 		}
 	}

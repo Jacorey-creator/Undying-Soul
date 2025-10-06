@@ -75,7 +75,7 @@ public class PlayerAttackController : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            EnemyAI enemy = hit.GetComponent<EnemyAI>();
+            EnemyBaseAI enemy = hit.GetComponent<EnemyBaseAI>();
             if (enemy == null) continue;
 
             enemy.health -= controller.GetSwipeDamage();
@@ -95,7 +95,7 @@ public class PlayerAttackController : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            EnemyAI enemy = hit.GetComponent<EnemyAI>();
+            EnemyBaseAI enemy = hit.GetComponent<EnemyBaseAI>();
             if (enemy == null) continue;
 
             float dmg = controller.GetSwipeDamage() * soulSwordDamageMultiplier;
@@ -115,7 +115,7 @@ public class PlayerAttackController : MonoBehaviour
 
         foreach (Collider hit in hits)
         {
-            EnemyAI enemyAI = hit.GetComponent<EnemyAI>();
+            EnemyBaseAI enemyAI = hit.GetComponent<EnemyBaseAI>();
             if (enemyAI == null) continue;
 
             int playerScreamLevel = controller.GetScreamLevel();

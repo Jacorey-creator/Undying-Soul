@@ -4,14 +4,14 @@ using UnityEngine.AI;
 [RequireComponent(typeof(PlayerController))]
 public class EnemmyPossesTest : MonoBehaviour, IPossessable
 {
-    private EnemyAI ai;
+    private EnemyBaseAI ai;
     private PlayerController controller;
     private PlayerMovementController movementController;
     private NavMeshAgent navAgent;
 
     void Awake()
     {
-        ai = GetComponent<EnemyAI>();
+        ai = GetComponent<EnemyBaseAI>();
         controller = GetComponent<PlayerController>();
         movementController = GetComponent<PlayerMovementController>();
         navAgent = GetComponent<NavMeshAgent>();

@@ -23,7 +23,7 @@ public class PossessionManager : MonoBehaviour
     [SerializeField] private AudioClip unpossessSound;
 
     private IPossessable currentPossessed;
-    private EnemyAI currentEnemyAI;
+    private EnemyBaseAI currentEnemyAI;
     private Coroutine possessionTimerCoroutine;
     private bool isPossessing = false;
 
@@ -56,7 +56,7 @@ public class PossessionManager : MonoBehaviour
         if (isPossessing) return;
 
         currentPossessed = target.GetComponent<IPossessable>();
-        currentEnemyAI = target.GetComponent<EnemyAI>();
+        currentEnemyAI = target.GetComponent<EnemyBaseAI>();
         if (currentPossessed == null || currentEnemyAI == null) return;
 
         // Disable ghost
