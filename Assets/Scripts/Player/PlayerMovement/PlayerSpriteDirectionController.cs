@@ -18,6 +18,15 @@ public class PlayerSpriteDirectionController : MonoBehaviour
             cameraTransform = Camera.main.transform;
     }
 
+    private void Update()
+    {
+        // Example: trigger attack when left mouse button is pressed
+        if (Input.GetButtonDown("Fire1"))
+        {
+            TriggerAttack();
+        }
+    }
+
     /// <summary>
     /// Call this every frame with the player's movement input.
     /// </summary>
@@ -43,5 +52,13 @@ public class PlayerSpriteDirectionController : MonoBehaviour
         // Ensure sprite faces the camera
         if (cameraTransform != null)
             spriteRenderer.transform.rotation = Quaternion.LookRotation(cameraTransform.forward, Vector3.up);
+    }
+
+    /// <summary>
+    /// Triggers the attack animation.
+    /// </summary>
+    public void TriggerAttack()
+    {
+        animator.SetTrigger("Attack");
     }
 }
