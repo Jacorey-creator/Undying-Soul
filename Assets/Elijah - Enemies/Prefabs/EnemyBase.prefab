@@ -281,7 +281,7 @@ MonoBehaviour:
   attackRange: 2
   attackCooldown: 1.5
   health: 10
-  dmg: 0
+  dmg: 1
   knockbackDisplacement: {x: 0, y: 0, z: 0}
   knockbackDecay: 10
   fearThreshold: 1

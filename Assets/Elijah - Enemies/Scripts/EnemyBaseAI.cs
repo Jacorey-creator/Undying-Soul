@@ -32,7 +32,7 @@ public class EnemyBaseAI : MonoBehaviour {
 	private float attackTimer;
 
 	public float health = 10f;
-	[SerializeField] float dmg = 10f;
+	[SerializeField] float dmg = 1f;
 
 	[SerializeField] private Vector3 knockbackDisplacement;
 	[SerializeField] private float knockbackDecay = 10f; // how fast knockback fades
@@ -52,8 +52,9 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	void Start() {
 		GameObject player = GameObject.FindWithTag("Player");
-		if (player != null)
+		if (player != null) {
 			target = player.transform;
+		}
 
 		hurtbox.GetComponent<HurtBox>().damage = dmg;
 		hurtbox.SetActive(false);
@@ -91,12 +92,11 @@ public class EnemyBaseAI : MonoBehaviour {
 
 	void SwitchState(State newState) {
 		curState = newState;
-		Debug.Log(curState);
 
 		switch (curState) {
 			case State.IDLE:
 				// play animation then patrol or chase
-				animator.SetTrigger("DoIdle");
+				if (animator != null) animator.SetTrigger("DoIdle");
 				StartCoroutine(IdleCoroutine());
 				break;
 			case State.PATROL:
@@ -117,13 +117,15 @@ public class EnemyBaseAI : MonoBehaviour {
 				break;
 			case State.CHASE:
 				GameObject p = GameObject.FindWithTag("Player");
-				if (p != null) target = p.transform;
+				if (p != null) {
+					target = p.transform;
+				}
 				break;
 			case State.ATTACK:
 				attackTimer = attackCooldown;
 				break;
 			case State.DEATH:
-				animator.SetTrigger("DoDeath");
+				if (animator != null) animator.SetTrigger("DoDeath");
 				StartCoroutine(DeathCoroutine());
 				break;
 			case State.DASH:
@@ -162,7 +164,9 @@ public class EnemyBaseAI : MonoBehaviour {
 	}
 
 	void chaseUpdate() {
-		if (target != null) agent.SetDestination(target.position);
+		if (target != null) {
+			agent.SetDestination(target.position);
+		}
 
 		if (Vector3.Distance(transform.position, target.position) > detectionRange) {
 			SwitchState(State.IDLE);
@@ -183,7 +187,7 @@ public class EnemyBaseAI : MonoBehaviour {
 		}
 
 		if (attackTimer <= 0f) {
-			animator.SetTrigger("DoAttack");
+			if (animator != null) animator.SetTrigger("DoAttack");
 
 			Vector3 attackOrigin = transform.position + transform.forward * attackRange;
 			Collider[] hits = Physics.OverlapSphere(attackOrigin, attackRange);
