@@ -27,6 +27,11 @@ public class DungeonCreator : MonoBehaviour
     List<Vector3Int> possibleWallVerticalPosition;
     List<Vector3Int> possibleWallHorizontalPosition;
 
+    [Header("Spawning System")]
+    [SerializeField] private List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
+    [SerializeField] private List<ObjectSpawner> objectSpawners = new List<ObjectSpawner>();
+    [SerializeField] private bool enableSpawning = true;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -36,6 +41,10 @@ public class DungeonCreator : MonoBehaviour
     public void CreateDungeon()
     {
         DestroyAllChildren();
+        
+        // Clear all spawners before generating
+        ClearAllSpawners();
+        
         DungeonGenerator generator = new DungeonGenerator(dungeonWidth, dungeonLength);
         var listOfRooms = generator.CalculateRooms(
             maxIterations,
@@ -57,9 +66,50 @@ public class DungeonCreator : MonoBehaviour
         for (int i = 0; i < listOfRooms.Count; i++)
         {
             CreateMesh(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner);
+            
+            // Spawn enemies and objects in rooms only
+            if (enableSpawning && listOfRooms[i] is RoomNode)
+            {
+                // Spawn enemies from all enemy spawners
+                foreach (var enemySpawner in enemySpawners)
+                {
+                    if (enemySpawner != null)
+                    {
+                        enemySpawner.SpawnEnemies(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform);
+                    }
+                }
+                
+                // Spawn objects from all object spawners
+                foreach (var objectSpawner in objectSpawners)
+                {
+                    if (objectSpawner != null)
+                    {
+                        objectSpawner.SpawnObjects(listOfRooms[i].BottomLeftAreaCorner, listOfRooms[i].TopRightAreaCorner, transform);
+                    }
+                }
+            }
         }
 
         CreateWalls(wallParent);
+    }
+    
+    private void ClearAllSpawners()
+    {
+        foreach (var enemySpawner in enemySpawners)
+        {
+            if (enemySpawner != null)
+            {
+                enemySpawner.ClearEnemies();
+            }
+        }
+        
+        foreach (var objectSpawner in objectSpawners)
+        {
+            if (objectSpawner != null)
+            {
+                objectSpawner.ClearObjects();
+            }
+        }
     }
 
     private void CreateWalls(GameObject wallParent)

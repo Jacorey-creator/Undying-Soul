@@ -11,12 +11,22 @@ public class CorridorNode : Node
     private Node structure2;
     private int corridorWidth;
     private int modifierDistanceFromWall = 1;
+    private List<Node> existingRooms = new List<Node>();
 
     public CorridorNode(Node node1, Node node2, int corridorWidth) : base(null)
     {
         this.structure1 = node1;
         this.structure2 = node2;
         this.corridorWidth = corridorWidth;
+        GenerateCorridor();
+    }
+    
+    public CorridorNode(Node node1, Node node2, int corridorWidth, List<Node> existingRooms) : base(null)
+    {
+        this.structure1 = node1;
+        this.structure2 = node2;
+        this.corridorWidth = corridorWidth;
+        this.existingRooms = existingRooms ?? new List<Node>();
         GenerateCorridor();
     }
 
@@ -100,6 +110,9 @@ public class CorridorNode : Node
 
         BottomLeftAreaCorner = new Vector2Int(leftStructure.BottomRightAreaCorner.x, y);
         TopRightAreaCorner = new Vector2Int(rightStructure.TopLeftAreaCorner.x, y + corridorWidth);
+
+        // Validate corridor position and adjust if it overlaps with rooms
+        ValidateAndAdjustCorridorPosition();
 
     }
 
@@ -197,6 +210,9 @@ public class CorridorNode : Node
         BottomLeftAreaCorner = new Vector2Int(x, bottomStructure.TopLeftAreaCorner.y);
         TopRightAreaCorner = new Vector2Int(x + corridorWidth, topStructure.BottomLeftAreaCorner.y);
 
+        // Validate corridor position and adjust if it overlaps with rooms
+        ValidateAndAdjustCorridorPosition();
+
     }
 
     private int GetValidXForNeighborUpDown(Vector2Int bottomNodeLeft, Vector2Int bottomNodeRight, Vector2Int topNodeLeft, Vector2Int topNodeRight)
@@ -264,5 +280,66 @@ public class CorridorNode : Node
     {
         return Mathf.Atan2(middlePointStructure2Temp.y - middlePointStructure1Temp.y, 
             middlePointStructure2Temp.x - middlePointStructure1Temp.x) * Mathf.Rad2Deg;
+    }
+    
+    private void ValidateAndAdjustCorridorPosition()
+    {
+        // Check if corridor overlaps with any existing rooms
+        foreach (var room in existingRooms)
+        {
+            if (CollisionHelper.RectangleIntersectsRoom(BottomLeftAreaCorner, TopRightAreaCorner, 
+                room.BottomLeftAreaCorner, room.TopRightAreaCorner))
+            {
+                // Try to adjust corridor position to avoid overlap
+                AdjustCorridorToAvoidOverlap(room);
+                break; // Only adjust once per corridor
+            }
+        }
+    }
+    
+    private void AdjustCorridorToAvoidOverlap(Node overlappingRoom)
+    {
+        Vector2Int roomMin = overlappingRoom.BottomLeftAreaCorner;
+        Vector2Int roomMax = overlappingRoom.TopRightAreaCorner;
+        
+        // Determine corridor orientation
+        bool isHorizontal = TopRightAreaCorner.y - BottomLeftAreaCorner.y < TopRightAreaCorner.x - BottomLeftAreaCorner.x;
+        
+        if (isHorizontal)
+        {
+            // Horizontal corridor - adjust Y position
+            if (BottomLeftAreaCorner.y < roomMin.y)
+            {
+                // Corridor is below room, move it further down
+                int newY = roomMin.y - corridorWidth - 1;
+                BottomLeftAreaCorner = new Vector2Int(BottomLeftAreaCorner.x, newY);
+                TopRightAreaCorner = new Vector2Int(TopRightAreaCorner.x, newY + corridorWidth);
+            }
+            else if (TopRightAreaCorner.y > roomMax.y)
+            {
+                // Corridor is above room, move it further up
+                int newY = roomMax.y + 1;
+                BottomLeftAreaCorner = new Vector2Int(BottomLeftAreaCorner.x, newY);
+                TopRightAreaCorner = new Vector2Int(TopRightAreaCorner.x, newY + corridorWidth);
+            }
+        }
+        else
+        {
+            // Vertical corridor - adjust X position
+            if (BottomLeftAreaCorner.x < roomMin.x)
+            {
+                // Corridor is left of room, move it further left
+                int newX = roomMin.x - corridorWidth - 1;
+                BottomLeftAreaCorner = new Vector2Int(newX, BottomLeftAreaCorner.y);
+                TopRightAreaCorner = new Vector2Int(newX + corridorWidth, TopRightAreaCorner.y);
+            }
+            else if (TopRightAreaCorner.x > roomMax.x)
+            {
+                // Corridor is right of room, move it further right
+                int newX = roomMax.x + 1;
+                BottomLeftAreaCorner = new Vector2Int(newX, BottomLeftAreaCorner.y);
+                TopRightAreaCorner = new Vector2Int(newX + corridorWidth, TopRightAreaCorner.y);
+            }
+        }
     }
 }
